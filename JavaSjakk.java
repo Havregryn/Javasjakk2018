@@ -16,8 +16,10 @@ import javafx.geometry.Rectangle2D;
 
 public class JavaSjakk extends Application{
 
-  private StackPane[][] feltene = new StackPane[8][8];
+  private static StackPane[][] feltene = new StackPane[8][8];
   // X - akse: trekk fra 1. Y-akse: 0 = A, 7 = H
+
+  private static Text statusFelt;
 
   public static void main(String[] args){
     launch(args);
@@ -104,12 +106,19 @@ public class JavaSjakk extends Application{
     feltene[6][7].getChildren().add(new UISvartSpringer(0, 0).bildeViser());
     feltene[7][7].getChildren().add(new UISvartTaarn(0, 0).bildeViser());
 
+    statusFelt = new Text("Tekstfeltet");
+    statusFelt.setWrappingWidth(Settinger.BRETT_BREDDE);
+    statusFelt.setY(Settinger.BRETT_BREDDE + 100);
+    statusFelt.setFont(new Font(20));
+    statusFelt.setTextAlignment(TextAlignment.CENTER);
+
 
 
 
 
     Pane hovedKulisse = new Pane();
     hovedKulisse.getChildren().add(brettGP);
+    hovedKulisse.getChildren().add(statusFelt);
 
 
     Scene scene = new Scene(hovedKulisse);
@@ -117,6 +126,28 @@ public class JavaSjakk extends Application{
     teater.setTitle("Java-sjakk");
     teater.show();
 
+
+  }
+
+  public static void brikkeFlyttetMedMus(ImageView iv, double fraX, double fraY, double tilX, double tilY){
+    int offset = Settinger.RUTE_BREDDE / 2;
+    int fraFeltX = (int)((fraX - offset)/Settinger.RUTE_BREDDE);
+    int fraFeltY = 7 - (int)((fraY - offset)/Settinger.RUTE_BREDDE);
+    int tilFeltX = (int)((tilX - offset)/Settinger.RUTE_BREDDE);
+    int tilFeltY = 7 - (int)((tilY - offset)/Settinger.RUTE_BREDDE);
+    String s = "Fra: " + fraFeltX + ", " + fraFeltY + " til: " + tilFeltX + ", " + tilFeltY;
+    statusFelt.setText(s);
+
+    StackPane fraSP = feltene[fraFeltX][fraFeltY];
+    StackPane tilSP = feltene[tilFeltX][tilFeltY];
+
+    fraSP.getChildren().remove(iv);
+    iv.setTranslateX(0);
+    iv.setTranslateY(0);
+    tilSP.getChildren().add(iv);
+  }
+
+  private static void registrerFlytt(int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
 
   }
 

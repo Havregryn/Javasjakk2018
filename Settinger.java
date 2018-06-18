@@ -1,5 +1,5 @@
 public class Settinger{
-  public static final int BRETT_BREDDE = 700;
+  public static final int BRETT_BREDDE = 600;
   public static final int RUTE_BREDDE = BRETT_BREDDE / 8;
 
   public static final int BRIKKER_TEGNING_HVIT_Y = 356;

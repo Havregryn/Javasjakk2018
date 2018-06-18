@@ -17,12 +17,35 @@ abstract class UIBrikke{
 
   public ImageView bildeViser(){
     Image bilde = new Image("brikker.png");
-    ImageView iv = new ImageView();
-    iv.setImage(bilde);
+    ImageView iv = new FlyttbarImageView(bilde);
     iv.setFitWidth((int)(Settinger.RUTE_BREDDE * 0.8));
     iv.setPreserveRatio(true);
     Rectangle2D utsnitt = new Rectangle2D(bildeX, bildeY, bredde, hoyde);
     iv.setViewport(utsnitt);
     return iv;
+  }
+
+  private class FlyttbarImageView extends ImageView{
+    double fraX, fraY;
+    FlyttbarImageView(Image bilde){
+      super(bilde);
+
+      setOnMousePressed(event ->{
+        this.getParent().toFront();
+        fraX = event.getSceneX();
+        fraY = event.getSceneY();
+      });
+
+      setOnMouseDragged(event ->{
+        double deltaX = event.getSceneX() - fraX;
+        double deltaY = event.getSceneY() - fraY;
+        setTranslateX(deltaX);
+        setTranslateY(deltaY);
+      });
+
+      setOnMouseReleased(event ->{
+        JavaSjakk.brikkeFlyttetMedMus(this, fraX, fraY, event.getSceneX(), event.getSceneY());
+      });
+    }
   }
 }
