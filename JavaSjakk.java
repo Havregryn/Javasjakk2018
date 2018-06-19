@@ -154,15 +154,14 @@ public class JavaSjakk extends Application{
     tilSP.getChildren().add(iv);
     */
 
-    animerFlyttAvBrikke(iv, tilX, tilY, fraX, fraY);
+    animerReturAvBrikke(iv);
   }
 
-  public static void animerFlyttAvBrikke(ImageView iv, double fraX, double fraY, double tilX, double tilY){
+  public static void animerReturAvBrikke(ImageView iv){
     TranslateTransition overgang = new TranslateTransition(Duration.millis(Settinger.ANIMER_TREKK_TID), iv);
     overgang.setToX(0);
     overgang.setToY(0);
     overgang.play();
-
   }
 
 
