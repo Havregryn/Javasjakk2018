@@ -14,8 +14,10 @@ import javafx.geometry.Rectangle2D;
 // Animasjon:
 import javafx.scene.shape.*;
 import javafx.animation.TranslateTransition;
+import javafx.animation.FadeTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.Timeline;
 import javafx.util.Duration;
-
 
 public class UIMaster extends Application{
   private static StackPane[][] feltene = new StackPane[8][8];
@@ -69,12 +71,16 @@ public class UIMaster extends Application{
             brettGP.add(stack, x, y);
           }
           else{
+            Rectangle varselFargeR = new Rectangle(Settinger.RUTE_BREDDE,
+                                                   Settinger.RUTE_BREDDE);
+            varselFargeR.setFill(Color.RED);
             Rectangle r = new Rectangle(Settinger.RUTE_BREDDE,
                                         Settinger.RUTE_BREDDE);
             if(hvittFelt){ r.setFill(Color.WHITE); }
             else{ r.setFill(Color.GREY); }
             StackPane stack = new StackPane();
             feltene[x - 1][8 - y] = stack;
+            stack.getChildren().add(varselFargeR);
             stack.getChildren().add(r);
             brettGP.add(stack, x, y);
             hvittFelt = !hvittFelt;
@@ -129,6 +135,10 @@ public class UIMaster extends Application{
     teater.setTitle("Java-sjakk");
     teater.show();
 
+    // Test av brikkeflytt-animasjon:
+    animerUtslagAvBrikke(3, 0, 3, 6);
+    //animerFlyttAvBrikke(6, 0, 5, 2);
+
 
   }
 
@@ -161,9 +171,57 @@ public class UIMaster extends Application{
     overgang.play();
   }
 
+  public static void animerFlyttAvBrikke(int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
+    ImageView iv;
+    StackPane fraSP = feltene[fraFeltX][fraFeltY];
+    StackPane tilSP = feltene[tilFeltX][tilFeltY];
+    iv = (ImageView)fraSP.getChildren().get(1);
+    iv.getParent().toFront();
+    int deltaX = (tilFeltX - fraFeltX) * Settinger.RUTE_BREDDE;
+    int deltaY = (fraFeltY - tilFeltY) * Settinger.RUTE_BREDDE;
+    TranslateTransition brikkeBevegelse = new TranslateTransition(Duration.millis(Settinger.ANIMER_TREKK_TID), iv);
+    brikkeBevegelse.setToX(deltaX);
+    brikkeBevegelse.setToY(deltaY);
+    brikkeBevegelse.play();
+  }
 
+  public static void animerUtslagAvBrikke(int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
+    ImageView hovedBrikkeIV;
+    ImageView utslattBrikkeIV;
+    Rectangle feltet;
+    StackPane fraSP = feltene[fraFeltX][fraFeltY];
+    StackPane tilSP = feltene[tilFeltX][tilFeltY];
+    hovedBrikkeIV = (ImageView)fraSP.getChildren().get(2);
+    utslattBrikkeIV = (ImageView)tilSP.getChildren().get(2);
+    feltet = (Rectangle)tilSP.getChildren().get(1);
+    hovedBrikkeIV.getParent().toFront();
+    int deltaX = (tilFeltX - fraFeltX) * Settinger.RUTE_BREDDE;
+    int deltaY = (fraFeltY - tilFeltY) * Settinger.RUTE_BREDDE;
+    // Lager en Sekvensiell transition med tre transitions: (flytt, blink, fjern)
+    TranslateTransition brikkeBevegelse = new TranslateTransition(
+                                                Duration.millis(Settinger.ANIMER_TREKK_TID),
+                                                hovedBrikkeIV);
+    brikkeBevegelse.setToX(deltaX);
+    brikkeBevegelse.setToY(deltaY);
 
-  private static void registrerFlytt(int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
+    FadeTransition blinking = new FadeTransition(Duration.millis(100), feltet);
+    blinking.setFromValue(1.0);
+    blinking.setToValue(0.1);
+    blinking.setAutoReverse(true);
+    blinking.setCycleCount(10);
+
+    deltaX = (-Settinger.BRETT_BREDDE);
+    deltaY = 0;
+
+    TranslateTransition utBrikkeBevegelse = new TranslateTransition(
+                                                  Duration.millis(Settinger.ANIMER_TREKK_TID),
+                                                  utslattBrikkeIV);
+    utBrikkeBevegelse.setToX(deltaX);
+    utBrikkeBevegelse.setToY(deltaY);
+
+    SequentialTransition st = new SequentialTransition();
+    st.getChildren().addAll(brikkeBevegelse, blinking, utBrikkeBevegelse);
+    st.play();
 
   }
 
