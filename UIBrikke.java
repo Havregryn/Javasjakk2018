@@ -4,12 +4,14 @@ import javafx.geometry.Rectangle2D;
 
 abstract class UIBrikke{
 
+  protected UIMaster ui;
   protected boolean erHvit;
   protected int verdi, xPos, yPos, bildeX = 0, bildeY = 0, bredde = 0, hoyde = 0;
   protected String navn;
 
 
-  public UIBrikke(int xPos, int yPos){
+  public UIBrikke(UIMaster ui, int xPos, int yPos){
+    this.ui = ui;
     this.xPos = xPos;
     this.yPos = yPos;
     hoyde = Settinger.BRIKKER_TEGNING_HOYDE;
@@ -46,7 +48,7 @@ abstract class UIBrikke{
       setOnMouseReleased(event ->{
         musTilX = event.getSceneX();
         musTilY = event.getSceneY();
-        JavaSjakk.brikkeFlyttetMedMus(this, musFraX, musFraY, musTilX, musTilY);
+        ui.brikkeFlyttetMedMus(this, musFraX, musFraY, musTilX, musTilY);
 
       });
     }
