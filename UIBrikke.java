@@ -26,25 +26,28 @@ abstract class UIBrikke{
   }
 
   private class FlyttbarImageView extends ImageView{
-    double fraX, fraY;
+    double musFraX, musFraY, musTilX, musTilY;
     FlyttbarImageView(Image bilde){
       super(bilde);
 
       setOnMousePressed(event ->{
         this.getParent().toFront();
-        fraX = event.getSceneX();
-        fraY = event.getSceneY();
+        musFraX = event.getSceneX();
+        musFraY = event.getSceneY();
       });
 
       setOnMouseDragged(event ->{
-        double deltaX = event.getSceneX() - fraX;
-        double deltaY = event.getSceneY() - fraY;
+        double deltaX = event.getSceneX() - musFraX;
+        double deltaY = event.getSceneY() - musFraY;
         setTranslateX(deltaX);
         setTranslateY(deltaY);
       });
 
       setOnMouseReleased(event ->{
-        JavaSjakk.brikkeFlyttetMedMus(this, fraX, fraY, event.getSceneX(), event.getSceneY());
+        musTilX = event.getSceneX();
+        musTilY = event.getSceneY();
+        JavaSjakk.brikkeFlyttetMedMus(this, musFraX, musFraY, musTilX, musTilY);
+
       });
     }
   }

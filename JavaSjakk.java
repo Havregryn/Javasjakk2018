@@ -5,12 +5,18 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.geometry.Rectangle2D;
+// Animasjon:
+import javafx.scene.shape.*;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
+
+
 
 
 
@@ -141,11 +147,25 @@ public class JavaSjakk extends Application{
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
 
+    /*
     fraSP.getChildren().remove(iv);
     iv.setTranslateX(0);
     iv.setTranslateY(0);
     tilSP.getChildren().add(iv);
+    */
+
+    animerFlyttAvBrikke(iv, tilX, tilY, fraX, fraY);
   }
+
+  public static void animerFlyttAvBrikke(ImageView iv, double fraX, double fraY, double tilX, double tilY){
+    TranslateTransition overgang = new TranslateTransition(Duration.millis(Settinger.ANIMER_TREKK_TID), iv);
+    overgang.setToX(0);
+    overgang.setToY(0);
+    overgang.play();
+
+  }
+
+
 
   private static void registrerFlytt(int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
 
