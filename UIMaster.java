@@ -24,6 +24,7 @@ public class UIMaster extends Application{
   // X - akse: trekk fra 1. Y-akse: 0 = A, 7 = H
 
   private static Text statusFelt;
+  private static Administrator administrator;
 
   public void startUI(String[] args){
     launch(args);
@@ -90,30 +91,6 @@ public class UIMaster extends Application{
       }
       hvittFelt = !hvittFelt;
     }
-    // Legger inn brikker, kun for testing:
-    for(int x = 0; x < 8; x++){
-      UIHvitBonde hb = new UIHvitBonde(this, 0, 0);
-      feltene[x][1].getChildren().add(hb.bildeViser());
-
-      feltene[x][6].getChildren().add(new UISvartBonde(this, 0, 0).bildeViser());
-    }
-    feltene[0][0].getChildren().add(new UIHvitTaarn(this, 0, 0).bildeViser());
-    feltene[1][0].getChildren().add(new UIHvitSpringer(this, 0, 0).bildeViser());
-    feltene[2][0].getChildren().add(new UIHvitLoper(this, 0, 0).bildeViser());
-    feltene[3][0].getChildren().add(new UIHvitDronning(this, 0, 0).bildeViser());
-    feltene[4][0].getChildren().add(new UIHvitKonge(this, 0, 0).bildeViser());
-    feltene[5][0].getChildren().add(new UIHvitLoper(this, 0, 0).bildeViser());
-    feltene[6][0].getChildren().add(new UIHvitSpringer(this, 0, 0).bildeViser());
-    feltene[7][0].getChildren().add(new UIHvitTaarn(this, 0, 0).bildeViser());
-
-    feltene[0][7].getChildren().add(new UISvartTaarn(this, 0, 0).bildeViser());
-    feltene[1][7].getChildren().add(new UISvartSpringer(this, 0, 0).bildeViser());
-    feltene[2][7].getChildren().add(new UISvartLoper(this, 0, 0).bildeViser());
-    feltene[3][7].getChildren().add(new UISvartDronning(this, 0, 0).bildeViser());
-    feltene[4][7].getChildren().add(new UISvartKonge(this, 0, 0).bildeViser());
-    feltene[5][7].getChildren().add(new UISvartLoper(this, 0, 0).bildeViser());
-    feltene[6][7].getChildren().add(new UISvartSpringer(this, 0, 0).bildeViser());
-    feltene[7][7].getChildren().add(new UISvartTaarn(this, 0, 0).bildeViser());
 
     statusFelt = new Text("Tekstfeltet");
     statusFelt.setWrappingWidth(Settinger.BRETT_BREDDE + Settinger.RUTE_BREDDE);
@@ -135,9 +112,13 @@ public class UIMaster extends Application{
     teater.setTitle("Java-sjakk");
     teater.show();
 
+    administrator = new Administrator(this);
+    //TestKlasse tk = new TestKlasse(this);
+
     // Test av brikkeflytt-animasjon:
-    animerUtslagAvBrikke(3, 0, 3, 6);
+    //animerUtslagAvBrikke(3, 0, 3, 6);
     //animerFlyttAvBrikke(6, 0, 5, 2);
+
 
 
   }
@@ -154,14 +135,11 @@ public class UIMaster extends Application{
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
 
-    /*
     fraSP.getChildren().remove(iv);
     iv.setTranslateX(0);
     iv.setTranslateY(0);
     tilSP.getChildren().add(iv);
-    */
 
-    animerReturAvBrikke(iv);
   }
 
   public static void animerReturAvBrikke(ImageView iv){
@@ -222,8 +200,45 @@ public class UIMaster extends Application{
     SequentialTransition st = new SequentialTransition();
     st.getChildren().addAll(brikkeBevegelse, blinking, utBrikkeBevegelse);
     st.play();
+  }
 
+  public void leggInnBrikke(int farge, int brikkeTypeNr, int feltX, int feltY){
+    statusFelt.setText("Legger inn brikke");
+    UIBrikke nyBrikke = null;
+    if(farge == 0){
+      switch(brikkeTypeNr){
+        case 1: nyBrikke = new UIHvitBonde(this, feltX, feltY);
+                break;
+        case 2: nyBrikke = new UIHvitSpringer(this, feltX, feltY);
+                break;
+        case 3: nyBrikke = new UIHvitLoper(this, feltX, feltY);
+                break;
+        case 4: nyBrikke = new UIHvitTaarn(this, feltX, feltY);
+                break;
+        case 5: nyBrikke = new UIHvitDronning(this, feltX, feltY);
+                break;
+        case 6: nyBrikke = new UIHvitKonge(this, feltX, feltY);
+                break;
+      }
+    }
+    else{
+      switch(brikkeTypeNr){
+        case 1: nyBrikke = new UISvartBonde(this, feltX, feltY);
+                break;
+        case 2: nyBrikke = new UISvartSpringer(this, feltX, feltY);
+                break;
+        case 3: nyBrikke = new UISvartLoper(this, feltX, feltY);
+                break;
+        case 4: nyBrikke = new UISvartTaarn(this, feltX, feltY);
+                break;
+        case 5: nyBrikke = new UISvartDronning(this, feltX, feltY);
+                break;
+        case 6: nyBrikke = new UISvartKonge(this, feltX, feltY);
+                break;
+      }
+    }
+    feltene[feltX][feltY].getChildren().add(nyBrikke.bildeViser());
   }
 
 
-}
+} // klasseslutt
