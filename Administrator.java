@@ -43,4 +43,6 @@ class Administrator{
     }
     return brettet;
   }
+
+  public Parti hentParti(){ return partiet; }
 }

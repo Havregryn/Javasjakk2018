@@ -25,6 +25,7 @@ public class UIMaster extends Application{
 
   private static Text statusFelt;
   private static Administrator administrator;
+  private static Parti partiet;
 
   public void startUI(String[] args){
     launch(args);
@@ -113,6 +114,7 @@ public class UIMaster extends Application{
     teater.show();
 
     administrator = new Administrator(this);
+    partiet = administrator.hentParti();
     //TestKlasse tk = new TestKlasse(this);
 
     // Test av brikkeflytt-animasjon:
@@ -135,10 +137,29 @@ public class UIMaster extends Application{
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
 
-    fraSP.getChildren().remove(iv);
-    iv.setTranslateX(0);
-    iv.setTranslateY(0);
-    tilSP.getChildren().add(iv);
+    int resultat = partiet.manueltTrekk(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
+    statusFelt.setText("resultat: " + resultat);
+    if(resultat == -1){
+      animerReturAvBrikke(iv);
+    }
+    else if(resultat == 0){
+      fraSP.getChildren().remove(iv);
+      iv.setTranslateX(0);
+      iv.setTranslateY(0);
+      tilSP.getChildren().add(iv);
+    }
+    else if(resultat == 1){
+      animerUtslagAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
+      /*
+      try{ Thread.sleep(Settinger.ANIMER_TREKK_TID); }
+      catch(InterruptedException e){}
+      */
+      fraSP.getChildren().remove(iv);
+      iv.setTranslateX(0);
+      iv.setTranslateY(0);
+      tilSP.getChildren().add(iv);
+    }
+
 
   }
 
@@ -198,7 +219,7 @@ public class UIMaster extends Application{
     utBrikkeBevegelse.setToY(deltaY);
 
     SequentialTransition st = new SequentialTransition();
-    st.getChildren().addAll(brikkeBevegelse, blinking, utBrikkeBevegelse);
+    st.getChildren().addAll(blinking, utBrikkeBevegelse);
     st.play();
   }
 
