@@ -44,5 +44,5 @@ class Administrator{
     return brettet;
   }
 
-  public Parti hentParti(){ return partiet; }
+  public Stilling hentStilling(){ return partiet.hentStilling(); }
 }

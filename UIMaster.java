@@ -25,7 +25,7 @@ public class UIMaster extends Application{
 
   private static Text statusFelt;
   private static Administrator administrator;
-  private static Parti partiet;
+  private static Stilling stilling;
 
   public void startUI(String[] args){
     launch(args);
@@ -114,7 +114,7 @@ public class UIMaster extends Application{
     teater.show();
 
     administrator = new Administrator(this);
-    partiet = administrator.hentParti();
+    stilling = administrator.hentStilling();
     //TestKlasse tk = new TestKlasse(this);
 
     // Test av brikkeflytt-animasjon:
@@ -137,7 +137,7 @@ public class UIMaster extends Application{
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
 
-    int resultat = partiet.manueltTrekk(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
+    int resultat = stilling.manueltTrekk(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
     statusFelt.setText("resultat: " + resultat);
     if(resultat == -1){
       animerReturAvBrikke(iv);
