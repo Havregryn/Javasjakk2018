@@ -19,13 +19,17 @@ import javafx.animation.SequentialTransition;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
+
 public class UIMaster extends Application{
   private static StackPane[][] feltene = new StackPane[8][8];
   // X - akse: trekk fra 1. Y-akse: 0 = A, 7 = H
 
-  private static Text statusFelt;
+  private static Text statusFelt, hoyreTekstFelt;
   private static Administrator administrator;
   private static Stilling stilling;
+  private static ArrayList<ImageView> hviteBrikkerIV = new ArrayList<ImageView>(16);
+  private static ArrayList<ImageView> svarteBrikkerIV = new ArrayList<ImageView>(16);
 
   public void startUI(String[] args){
     launch(args);
@@ -95,17 +99,24 @@ public class UIMaster extends Application{
 
     statusFelt = new Text("Tekstfeltet");
     statusFelt.setWrappingWidth(Settinger.BRETT_BREDDE + Settinger.RUTE_BREDDE);
-    statusFelt.setY(Settinger.BRETT_BREDDE + 100);
+    //statusFelt.setY(Settinger.BRETT_BREDDE + 100);
     statusFelt.setFont(new Font(20));
     statusFelt.setTextAlignment(TextAlignment.CENTER);
 
+    hoyreTekstFelt = new Text("Høyre");
+    hoyreTekstFelt.setWrappingWidth(Settinger.RUTE_BREDDE * 6);
+    hoyreTekstFelt.setFont(new Font(16));
 
 
 
 
     Pane hovedKulisse = new Pane();
-    hovedKulisse.getChildren().add(brettGP);
-    hovedKulisse.getChildren().add(statusFelt);
+    GridPane layoutGP = new GridPane();
+    layoutGP.add(brettGP, 0, 0);
+    layoutGP.add(hoyreTekstFelt, 1, 0);
+    layoutGP.add(statusFelt, 0, 1);
+
+    hovedKulisse.getChildren().add(layoutGP);
 
 
     Scene scene = new Scene(hovedKulisse);
@@ -115,6 +126,8 @@ public class UIMaster extends Application{
 
     administrator = new Administrator(this);
     stilling = administrator.hentStilling();
+    hoyreTekstFelt.setText(stilling.toString());
+    //hoyreTekstFelt.setText(stilling.hentEvalStreng());
     //TestKlasse tk = new TestKlasse(this);
 
     // Test av brikkeflytt-animasjon:
@@ -132,13 +145,18 @@ public class UIMaster extends Application{
     int tilFeltX = (int)((tilX - offset)/Settinger.RUTE_BREDDE);
     int tilFeltY = 7 - (int)((tilY - offset)/Settinger.RUTE_BREDDE);
     String s = "Fra: " + fraFeltX + ", " + fraFeltY + " til: " + tilFeltX + ", " + tilFeltY;
-    statusFelt.setText(s);
+    //statusFelt.setText(s);
+    //statusFelt.setText("Ant trekk: " + Integer.toString(stilling.hentTrekkListe().size()));
+
+    //hoyreTekstFelt.setText(stilling.hentEvalStreng());
 
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
 
     int resultat = stilling.manueltTrekk(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
-    statusFelt.setText("resultat: " + resultat);
+    hoyreTekstFelt.setText(stilling.toString());
+    //hoyreTekstFelt.setText(stilling.hentEvalStreng());
+    //statusFelt.setText("resultat: " + resultat);
     if(resultat == -1){
       animerReturAvBrikke(iv);
     }
@@ -192,6 +210,8 @@ public class UIMaster extends Application{
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
     hovedBrikkeIV = (ImageView)fraSP.getChildren().get(2);
     utslattBrikkeIV = (ImageView)tilSP.getChildren().get(2);
+    hviteBrikkerIV.remove(utslattBrikkeIV);
+    svarteBrikkerIV.remove(utslattBrikkeIV);
     feltet = (Rectangle)tilSP.getChildren().get(1);
     hovedBrikkeIV.getParent().toFront();
     int deltaX = (tilFeltX - fraFeltX) * Settinger.RUTE_BREDDE;
@@ -258,8 +278,17 @@ public class UIMaster extends Application{
                 break;
       }
     }
-    feltene[feltX][feltY].getChildren().add(nyBrikke.bildeViser());
+    ImageView iv = nyBrikke.bildeViser();
+    feltene[feltX][feltY].getChildren().add(iv);
+    if(farge == 0){ hviteBrikkerIV.add(iv); }
+    else{ svarteBrikkerIV.add(iv); }
   }
 
+  private void settHvitDisabled(boolean dvaleStatus){
+    for(ImageView iv: hviteBrikkerIV){ iv.setDisable(dvaleStatus); }
+  }
 
+  private void settSvartDisabled(boolean dvaleStatus){
+    for(ImageView iv: svarteBrikkerIV){ iv.setDisable(dvaleStatus); }
+  }
 } // klasseslutt

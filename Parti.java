@@ -5,12 +5,12 @@
 class Parti{
 
   private boolean forsteTrekkHvit;
-  private short nesteTrekkFarge;
+  private int nesteTrekkFarge;
   private UIMaster uiMaster;
   private Stilling stilling;
-  private boolean hvitErAutomatisk, svartErAutomatisk; 
+  private boolean hvitErAutomatisk, svartErAutomatisk;
 
-  public Parti(short[][][] brettet, boolean forsteTrekkHvit, UIMaster uiMaster){
+  public Parti(int[][][] brettet, boolean forsteTrekkHvit, UIMaster uiMaster){
     this.forsteTrekkHvit = forsteTrekkHvit;
     if(forsteTrekkHvit){ nesteTrekkFarge = 0; }
     else{ nesteTrekkFarge = 1; }

@@ -23,11 +23,12 @@ public class Settinger{
   public static final int ANIMER_TREKK_TID = 2000;
 
   // BRIKKEVERDIER:
-  public static final short BONDE_VERDI = 1;
-  public static final short SPRINGER_VERDI = 3;
-  public static final short LOPER_VERDI = 3;
-  public static final short TAARN_VERDI = 5;
-  public static final short DRONNING_VERDI = 9;
+  public static final int BONDE_VERDI = 1;
+  public static final int SPRINGER_VERDI = 3;
+  public static final int LOPER_VERDI = 3;
+  public static final int TAARN_VERDI = 5;
+  public static final int DRONNING_VERDI = 9;
+  public static final int TREKK_VERDI = 1;
 
 
 
