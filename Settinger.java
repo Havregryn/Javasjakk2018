@@ -20,10 +20,16 @@ public class Settinger{
   public static final int BRIKKER_TEGNING_BONDE_X = 1175;
   public static final int BRIKKER_TEGNING_BONDE_BREDDE = 134;
 
-  public static final int ANIMER_TREKK_TID = 2000;
+  public static final int ANIMER_TREKK_TID = 1000;
 
   // BRIKKEVERDIER:
-  public static final int[] BRIKKEVERDIER = {0, 1, 3, 3, 5, 9, 18};
+  public static final int[] BRIKKEVERDIER = {0,
+                                             1, // Bonde
+                                             3, // Springer
+                                             3, // Løper
+                                             5, // Tårn
+                                             9, // Dronning
+                                             18}; // Konge
 
   public static final int TREKK_VERDI = 1;
 

@@ -47,10 +47,10 @@ class Administrator{
 
   private int[][][] spesialStartBrett(){
     int[][][]brettet = new int[2][8][8];
-    brettet[0][4][0] = 6;
-    brettet[0][0][0] = 4;
-    brettet[1][4][7] = 6;
-    brettet[1][7][7] = 4;
+    brettet[0][4][6] = 1;
+    brettet[1][5][7] = 5;
+    brettet[1][5][4] = 1;
+
     return brettet;
   }
 

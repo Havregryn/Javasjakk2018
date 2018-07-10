@@ -131,17 +131,9 @@ public class UIMaster extends Application{
     stilling = administrator.hentStilling();
     hoyreTekstFelt.setText(stilling.toString());
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
-    //TestKlasse tk = new TestKlasse(this);
-
-    // Test av brikkeflytt-animasjon:
-    //animerUtslagAvBrikke(3, 0, 3, 6);
-    //animerFlyttAvBrikke(6, 0, 5, 2);
-
-
-
   }
 
-  public static void brikkeFlyttetMedMus(ImageView iv, double fraX, double fraY, double tilX, double tilY){
+  public void brikkeFlyttetMedMus(ImageView iv, double fraX, double fraY, double tilX, double tilY){
     int offset = Settinger.RUTE_BREDDE / 2;
     int fraFeltX = (int)((fraX - offset)/Settinger.RUTE_BREDDE);
     int fraFeltY = 7 - (int)((fraY - offset)/Settinger.RUTE_BREDDE);
@@ -204,6 +196,48 @@ public class UIMaster extends Application{
       // Flytter tårnet:
       animerFlyttAvBrikke(7, fraFeltY, 5, fraFeltY);
     }
+    else if(resultat == 4){
+      // bondeforvandling uten utslag av brikke:
+      animerBondeForvandling(tilFeltX, tilFeltY);
+      fraSP.getChildren().remove(iv);
+      if(hviteBrikkerIV.contains(iv)){
+        hviteBrikkerIV.remove(iv);
+        UIHvitDronning nyDronning = new UIHvitDronning(this, tilFeltX, tilFeltY);
+        ImageView nyDronningIV = nyDronning.bildeViser();
+        tilSP.getChildren().add(nyDronningIV);
+        hviteBrikkerIV.add(nyDronningIV);
+      }
+      else{
+        svarteBrikkerIV.remove(iv);
+        UISvartDronning nyDronning = new UISvartDronning(this, tilFeltX, tilFeltY);
+        ImageView nyDronningIV = nyDronning.bildeViser();
+        tilSP.getChildren().add(nyDronningIV);
+        svarteBrikkerIV.add(nyDronningIV);
+      }
+
+    }
+    else if(resultat == 5){
+      // bondeforvandling med utslag av brikke:
+      animerUtslagAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
+      fraSP.getChildren().remove(iv);
+      if(hviteBrikkerIV.contains(iv)){
+        hviteBrikkerIV.remove(iv);
+        UIHvitDronning nyDronning = new UIHvitDronning(this, tilFeltX, tilFeltY);
+        ImageView nyDronningIV = nyDronning.bildeViser();
+        tilSP.getChildren().add(nyDronningIV);
+        hviteBrikkerIV.add(nyDronningIV);
+      }
+      else{
+        svarteBrikkerIV.remove(iv);
+        UISvartDronning nyDronning = new UISvartDronning(this, tilFeltX, tilFeltY);
+        ImageView nyDronningIV = nyDronning.bildeViser();
+        tilSP.getChildren().add(nyDronningIV);
+        svarteBrikkerIV.add(nyDronningIV);
+      }
+
+
+
+    }
   }
 
   public static void animerReturAvBrikke(ImageView iv){
@@ -259,11 +293,11 @@ public class UIMaster extends Application{
     brikkeBevegelse.setToX(deltaX);
     brikkeBevegelse.setToY(deltaY);
 
-    FadeTransition blinking = new FadeTransition(Duration.millis(100), feltet);
+    FadeTransition blinking = new FadeTransition(Duration.millis(75), feltet);
     blinking.setFromValue(1.0);
     blinking.setToValue(0.1);
     blinking.setAutoReverse(true);
-    blinking.setCycleCount(10);
+    blinking.setCycleCount(20);
 
     deltaX = (-Settinger.BRETT_BREDDE);
     deltaY = 0;
@@ -276,11 +310,35 @@ public class UIMaster extends Application{
 
     SequentialTransition st = new SequentialTransition();
     st.getChildren().addAll(blinking, utBrikkeBevegelse);
+    st.setOnFinished(new EventHandler<ActionEvent>(){
+      @Override
+      public void handle(ActionEvent e){
+        tilSP.getChildren().remove(utslattBrikkeIV);
+      }
+    });
     st.play();
   }
 
+  public static void animerBondeForvandling(int x, int y){
+    StackPane feltetSP = feltene[x][y];
+    Rectangle bakgrunn = (Rectangle)feltetSP.getChildren().get(0);
+    bakgrunn.setFill(Color.ORANGE);
+    Rectangle feltet = (Rectangle)feltetSP.getChildren().get(1);
+    FadeTransition blinking = new FadeTransition(Duration.millis(75), feltet);
+    blinking.setFromValue(1.0);
+    blinking.setToValue(0.1);
+    blinking.setAutoReverse(true);
+    blinking.setCycleCount(20);
+    blinking.setOnFinished(new EventHandler<ActionEvent>(){
+      @Override
+      public void handle(ActionEvent e){
+        bakgrunn.setFill(Color.RED);
+      }
+    });
+    blinking.play();
+  }
+
   public void leggInnBrikke(int farge, int brikkeTypeNr, int feltX, int feltY){
-    statusFelt.setText("Legger inn brikke");
     UIBrikke nyBrikke = null;
     if(farge == 0){
       switch(brikkeTypeNr){

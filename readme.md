@@ -21,10 +21,13 @@ Rokade: Stilling: variable som viser om brikke er flyttet.
   OBS! : Dersom felt mellom konge og tårn er truet er rokade ULOVLIG. Sjekkes
   ved rekursjon 1 trekk fram
 
+  Utfør trekk i stilling mht til rokade:
+  Dersom brikke er konge og flyttes to til siden:
+
 Bonde til dronning:
   Når trekk til siste rad er gjort: bytt ut med dronning.
 
-Passeringsregel?
+Faux Pas (Venter med denne..)
 
 Rating:
   Lag et rating system: brikkeverdi, mulige flytt, pluss for å true brikker.
