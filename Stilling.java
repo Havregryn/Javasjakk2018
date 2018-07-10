@@ -16,10 +16,13 @@ class Stilling{
   private int grunnMuligeTrekk[];
   private String evalStreng = "";
 
+  private boolean[] kongeErUflyttet = {true, true};
+  private boolean[] aTaarnErUflyttet = {true, true};
+  private boolean[] hTaarnErUflyttet = {true, true};
+
   public Stilling(int[][][] brettet, int nesteTrekkFarge, Parti parti, UIMaster uiMaster){
     this.brettet = brettet;
     this.nesteTrekkFarge = nesteTrekkFarge;
-    grunnRating = 0;
     if(nesteTrekkFarge == 0){ forrigeTrekkFarge = 1; }
     else{ forrigeTrekkFarge = 0; }
     this.parti = parti;
@@ -31,7 +34,10 @@ class Stilling{
     grunnMuligeTrekk = new int[2];
     grunnMuligeTrekk[0] = 0;
     grunnMuligeTrekk[1] = 0;
+    grunnRating = 0;
+    initierRokadeVariabler();
     evalStreng += Evaluator.grunnEvaluering(this);
+    initierBrikkeSum();
   }
 
   // TESTMETODE:
@@ -52,9 +58,30 @@ class Stilling{
     }
   }
 
-  public void leggTilBrikkeSum(int farge, int brikkeVerdi ){
-    brikkeSum[farge] += brikkeVerdi;
+private void initierBrikkeSum(){
+  // UFERDIG
+  for(int x = 0; x <= 7; x++){
+    for(int y = 0; y <= 7; y++){
+      if(brettet[nesteTrekkFarge][x][y] != 0){
+        brikkeSum[nesteTrekkFarge] += Settinger.BRIKKEVERDIER[brettet[nesteTrekkFarge][x][y]];
+      }
+      if(brettet[forrigeTrekkFarge][x][y] != 0){
+        brikkeSum[forrigeTrekkFarge] += Settinger.BRIKKEVERDIER[brettet[forrigeTrekkFarge][x][y]];
+      }
+    }
   }
+}
+
+public void initierRokadeVariabler(){
+  // Rokade er kun mulig dersom konge og tårn er satt opp på normal startplass:
+  kongeErUflyttet[0] = (brettet[0][4][0] == 6);
+  aTaarnErUflyttet[0] = (brettet[0][0][0] == 4);
+  hTaarnErUflyttet[0] = (brettet[0][7][0] == 4);
+  kongeErUflyttet[1] = (brettet[1][4][7] == 6);
+  aTaarnErUflyttet[1] = (brettet[1][0][7] == 4);
+  hTaarnErUflyttet[1] = (brettet[1][7][7] == 4);
+
+}
 
   public int manueltTrekk(int fraX, int fraY, int tilX, int tilY){
     int resultat = -1;
@@ -63,18 +90,52 @@ class Stilling{
          fraY == trekk.hentFraY() &&
          tilX == trekk.hentTilX() &&
          tilY == trekk.hentTilY()){
+
+
+           // Utfører trekket!
            brettet[nesteTrekkFarge][tilX][tilY] = brettet[nesteTrekkFarge][fraX][fraY];
            brettet[nesteTrekkFarge][fraX][fraY] = 0;
-           if(brettet[forrigeTrekkFarge][tilX][tilY] == 0){
-             resultat = 0; }
-           else{
-             brettet[forrigeTrekkFarge][tilX][tilY] = 0;
-             resultat = 1;
+           // Sjekker om rokade:
+           if(trekk.hentBrikkeTypeNr() == 6 && fraX - tilX == 2){
+             brettet[nesteTrekkFarge][0][fraY] = 0;
+             brettet[nesteTrekkFarge][3][fraY] = 4;
+             resultat = 2; // Indikerer lang rokade med a Tårn.
            }
-           break;
+           else if(trekk.hentBrikkeTypeNr() == 6 && fraX - tilX == -2){
+             brettet[nesteTrekkFarge][7][fraY] = 0;
+             brettet[nesteTrekkFarge][5][fraY] = 4;
+             resultat = 3; // indikerer kort rokade med h tårn.
+           }
+           else{
+             // Ikke rokade, vanlig trekk:
+             if(brettet[forrigeTrekkFarge][tilX][tilY] == 0){
+               resultat = 0; // Indikerer trekk uten utslag av motstander.
+             }
+             else{
+               brikkeSum[forrigeTrekkFarge] -= Settinger.BRIKKEVERDIER[brettet[forrigeTrekkFarge][tilX][tilY]];
+               brettet[forrigeTrekkFarge][tilX][tilY] = 0;
+               resultat = 1; // Indikerer trekk med utslag av motstanders brikke.
+             }
+           }
+
+
+           //Sjekk om rokadebetingelser blir endret som følge av trekket:
+           if(fraY == nesteTrekkFarge * 7){
+             if(fraX == 0 && aTaarnErUflyttet[nesteTrekkFarge] == true){
+               aTaarnErUflyttet[nesteTrekkFarge] = false;
+             }
+             if(fraX == 7 && hTaarnErUflyttet[nesteTrekkFarge] == true){
+               hTaarnErUflyttet[nesteTrekkFarge] = false;
+             }
+             if(fraX == 4 && kongeErUflyttet[nesteTrekkFarge] == true){
+               kongeErUflyttet[nesteTrekkFarge] = false;
+             }
+           }
+           break; // Avbryter søk i mulige trekk-listen fordi match ble funnet/trekk ble utført.
          }
     }
-    byttTrekkFarge();
+    if(resultat != -1){
+      byttTrekkFarge(); }
     return resultat;
   }
 
@@ -92,10 +153,8 @@ class Stilling{
 
   private void byttTrekkFarge(){
     muligeTrekk = new ArrayList<Trekk>(40);
-    for(int i = 0; i < 2; i++){
-      brikkeSum[i] = 0;
-      grunnMuligeTrekk[i] = 0;
-    }
+    grunnMuligeTrekk[0] = 0;
+    grunnMuligeTrekk[1] = 0;
     if(nesteTrekkFarge == 0){
       nesteTrekkFarge = 1;
       forrigeTrekkFarge = 0;
@@ -107,15 +166,28 @@ class Stilling{
     evalStreng = Evaluator.grunnEvaluering(this);
   }
 
+  public boolean hentLangRokadeMulig(int farge){
+    return (kongeErUflyttet[farge] && aTaarnErUflyttet[farge]);
+  }
+  public boolean hentKortRokadeMulig(int farge){
+    return (kongeErUflyttet[farge] && hTaarnErUflyttet[farge]);
+  }
+
+
   @Override
   public String toString(){
-    String s = "MULIGE TREKK I STILLING\n";
+    String s = "";
+    if(nesteTrekkFarge == 0){ s += "HVIT SIN TUR\n"; }
+    else{ s += "SVART SIN TUR\n"; }
+    s += "\nMulige trekk i stilling:\n";
     int i = 1;
     for(Trekk t : muligeTrekk){
       s += ((i++) +  ": " + t.toString() + "\n");
     }
     s += "Mulige trekk hvit:" + grunnMuligeTrekk[0] + "\n";
     s += "Mulige trekk svart:" + grunnMuligeTrekk[1] + "\n";
+    s += "Hvit brikkesum: " + brikkeSum[0] + "\n";
+    s += "Svart brikkesum: " + brikkeSum[0] + "\n";
     return s;
   }
 

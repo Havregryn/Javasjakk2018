@@ -19,6 +19,9 @@ import javafx.animation.SequentialTransition;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 
+import javafx.event.EventHandler;
+import javafx.event.ActionEvent;
+
 import java.util.ArrayList;
 
 public class UIMaster extends Application{
@@ -145,43 +148,66 @@ public class UIMaster extends Application{
     int tilFeltX = (int)((tilX - offset)/Settinger.RUTE_BREDDE);
     int tilFeltY = 7 - (int)((tilY - offset)/Settinger.RUTE_BREDDE);
     String s = "Fra: " + fraFeltX + ", " + fraFeltY + " til: " + tilFeltX + ", " + tilFeltY;
-    //statusFelt.setText(s);
+    statusFelt.setText(s);
     //statusFelt.setText("Ant trekk: " + Integer.toString(stilling.hentTrekkListe().size()));
 
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
 
+    if(tilFeltX < 0 || tilFeltX > 7 || tilFeltY < 0 || tilFeltY > 7) {
+      tilFeltX = fraFeltX;
+      tilFeltY = fraFeltY;
+    }
+
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
+
+
 
     int resultat = stilling.manueltTrekk(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
     hoyreTekstFelt.setText(stilling.toString());
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
     //statusFelt.setText("resultat: " + resultat);
     if(resultat == -1){
+      // Ikke lovlig trekk, brikke flyttes tilbake:
       animerReturAvBrikke(iv);
     }
     else if(resultat == 0){
+      // Trekk til tomt felt:
       fraSP.getChildren().remove(iv);
       iv.setTranslateX(0);
       iv.setTranslateY(0);
       tilSP.getChildren().add(iv);
     }
     else if(resultat == 1){
+      // Trekk med utslag av motstanders brikker:
       animerUtslagAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
-      /*
-      try{ Thread.sleep(Settinger.ANIMER_TREKK_TID); }
-      catch(InterruptedException e){}
-      */
       fraSP.getChildren().remove(iv);
       iv.setTranslateX(0);
       iv.setTranslateY(0);
       tilSP.getChildren().add(iv);
     }
-
-
+    else if(resultat == 2){
+      // Lang rokade:
+      fraSP.getChildren().remove(iv);
+      iv.setTranslateX(0);
+      iv.setTranslateY(0);
+      tilSP.getChildren().add(iv);
+      // Flytter tårnet:
+      animerFlyttAvBrikke(0, fraFeltY, 3, fraFeltY);
+    }
+    else if(resultat == 3){
+      // Kort rokade:
+      fraSP.getChildren().remove(iv);
+      iv.setTranslateX(0);
+      iv.setTranslateY(0);
+      tilSP.getChildren().add(iv);
+      // Flytter tårnet:
+      animerFlyttAvBrikke(7, fraFeltY, 5, fraFeltY);
+    }
   }
 
   public static void animerReturAvBrikke(ImageView iv){
+    // OBS: Flytter også brikkeIV over til nytt felt i feltene!!
     TranslateTransition overgang = new TranslateTransition(Duration.millis(Settinger.ANIMER_TREKK_TID), iv);
     overgang.setToX(0);
     overgang.setToY(0);
@@ -192,11 +218,21 @@ public class UIMaster extends Application{
     ImageView iv;
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
-    iv = (ImageView)fraSP.getChildren().get(1);
+    iv = (ImageView)fraSP.getChildren().get(2);
     iv.getParent().toFront();
     int deltaX = (tilFeltX - fraFeltX) * Settinger.RUTE_BREDDE;
     int deltaY = (fraFeltY - tilFeltY) * Settinger.RUTE_BREDDE;
     TranslateTransition brikkeBevegelse = new TranslateTransition(Duration.millis(Settinger.ANIMER_TREKK_TID), iv);
+    // Flytter brikkeIV over til nytt felt ETTER animasjon:
+    brikkeBevegelse.setOnFinished(new EventHandler<ActionEvent>(){
+      @Override
+      public void handle(ActionEvent event){
+        fraSP.getChildren().remove(iv);
+        iv.setTranslateX(0);
+        iv.setTranslateY(0);
+        tilSP.getChildren().add(iv);
+      }
+    });
     brikkeBevegelse.setToX(deltaX);
     brikkeBevegelse.setToY(deltaY);
     brikkeBevegelse.play();

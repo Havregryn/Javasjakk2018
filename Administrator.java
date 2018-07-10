@@ -10,7 +10,7 @@ class Administrator{
   public Administrator(UIMaster uiMaster){
     this.uiMaster = uiMaster;
     //uiMaster.leggInnBrikke(0, 1, 1, 1);
-    partiet = new Parti(standardStartBrett(), true, uiMaster);
+    partiet = new Parti(spesialStartBrett(), true, uiMaster, false, false);
   }
 
   /**
@@ -47,8 +47,10 @@ class Administrator{
 
   private int[][][] spesialStartBrett(){
     int[][][]brettet = new int[2][8][8];
-    brettet[0][0][0] = 6;
-    //brettet[1][6][7] = 1;
+    brettet[0][4][0] = 6;
+    brettet[0][0][0] = 4;
+    brettet[1][4][7] = 6;
+    brettet[1][7][7] = 4;
     return brettet;
   }
 

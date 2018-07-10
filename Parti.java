@@ -8,10 +8,14 @@ class Parti{
   private int nesteTrekkFarge;
   private UIMaster uiMaster;
   private Stilling stilling;
-  private boolean hvitErAutomatisk, svartErAutomatisk;
+  private boolean[] automatisk;
 
-  public Parti(int[][][] brettet, boolean forsteTrekkHvit, UIMaster uiMaster){
+
+  public Parti(int[][][] brettet, boolean forsteTrekkHvit, UIMaster uiMaster, boolean hvitErAuto, boolean svartErAuto){
     this.forsteTrekkHvit = forsteTrekkHvit;
+    automatisk = new boolean[2];
+    automatisk[0] = hvitErAuto;
+    automatisk[1] = svartErAuto;
     if(forsteTrekkHvit){ nesteTrekkFarge = 0; }
     else{ nesteTrekkFarge = 1; }
     this.uiMaster = uiMaster;
@@ -19,12 +23,8 @@ class Parti{
     stilling.settOppBrikkerUI();
   }
 
+
+
   public Stilling hentStilling(){ return stilling; }
-
-  /**
-  Metode som tar imot manuelle trekk fra UI. Returnerer -1 dersom ulovlig, 0 dersom
-  lovlig, og 1 dersom slår ut brikke.
-
-  */
 
 }

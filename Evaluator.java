@@ -45,7 +45,6 @@ class Evaluator{
 
   private static String grunnBondeEval(int x, int y, int evFarge, boolean evaluererNesteTrekkFarge){
     String bondeEvalStreng = "Bonde på: " + x + ", " + y + ": ";
-    stilling.leggTilBrikkeSum(evFarge, Settinger.BONDE_VERDI);
     int[][][] brettet = stilling.hentBrett();
     int retning = (evFarge * -2) + 1;
     int motstander = 1 - evFarge;
@@ -56,7 +55,7 @@ class Evaluator{
     if((retning == 1 && evFarge == 0) || (retning == -1 && evFarge == 1)){
       //bondeEvalStreng += "X = " + x + " Retning: " + retning + "\n";
       //bondeEvalStreng += "felt " + x + ", " + (y + retning) + "er  tomt: " + feltErTomt(x + retning, y) + "\n";
-      if(y + retning > 0 && y + retning < 7 &&  feltErTomt(x, y + retning)){
+      if(y + retning >= 0 && y + retning <= 7 &&  feltErTomt(x, y + retning)){
         stilling.leggTilTrekk(evFarge, 1, x, y, x, y + retning);
         bondeEvalStreng += " 1 foran ledig! ";
         if(urort && feltErTomt(x, y + retning * 2)){
@@ -66,7 +65,7 @@ class Evaluator{
       }
 
       // Sjekker skrå-trekk venstre (y-1) og skrå høyre(y+1), trekk mulig dersom motstander der:
-      if(y + retning > 0 && y + retning < 7){
+      if(y + retning >= 0 && y + retning <= 7){
         if(x > 0 && brettet[motstander][x - 1][y + retning] != 0){
           stilling.leggTilTrekk(evFarge, 1, x, y, x - 1, y + retning);
         }
@@ -156,8 +155,24 @@ class Evaluator{
           stilling.leggTilTrekk(evFarge, 6, x, y, x + deltaX, y + deltaY);
         }
       }
+      //Rokade sjekk:
+
+      //Lang rokade(med a tårn):
+      if(stilling.hentLangRokadeMulig(evFarge)){
+        if(feltErTomt(3, y) && feltErTomt(2, y) && feltErTomt(1, y)){
+          stilling.leggTilTrekk(evFarge, 6, 4, y, 2, y);
+        }
+      }
+      //Kort rokade(med h tårn):
+      if(stilling.hentKortRokadeMulig(evFarge)){
+        if(feltErTomt(5, y) && feltErTomt(6, y)){
+          stilling.leggTilTrekk(evFarge, 6, 4, y, 6, y);
+        }
+      }
+
+
     }
-    return ""; }
+    return evalStreng; }
 
   private static String diagonalEval(int x, int y, int evFarge, int brikkeTypeNr){
     String evalStreng = "";
