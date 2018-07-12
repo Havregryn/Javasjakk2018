@@ -14,6 +14,7 @@ class Stilling{
   private int grunnRating;
   private int brikkeSum[];
   private int grunnMuligeTrekk[];
+  private double[] grunnTrusselBonus = {0.0, 0.0};
   private String evalStreng = "";
 
   private boolean[] kongeErUflyttet = {true, true};
@@ -173,6 +174,8 @@ class Stilling{
     muligeTrekk = new ArrayList<Trekk>(40);
     grunnMuligeTrekk[0] = 0;
     grunnMuligeTrekk[1] = 0;
+    grunnTrusselBonus[0] = 0;
+    grunnTrusselBonus[1] = 0;
     forrigeTrekkFarge = nesteTrekkFarge;
     nesteTrekkFarge = 1 - nesteTrekkFarge;
     evalStreng = Evaluator.grunnEvaluering(this);
@@ -186,8 +189,17 @@ class Stilling{
     return (kongeErUflyttet[farge] && hTaarnErUflyttet[farge]);
   }
 
+  public void leggTilTrusselBonus(int farge, int bonus){
+    grunnTrusselBonus[farge] += bonus;
+  }
+
   private void oppdaterGrunnRating(){
-    grunnRating = brikkeSum[0] + grunnMuligeTrekk[0] - brikkeSum[1] - grunnMuligeTrekk[1];
+    grunnRating =   brikkeSum[0]
+                  + grunnMuligeTrekk[0]
+                  + (int)Math.round(grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING)
+                  - brikkeSum[1]
+                  - grunnMuligeTrekk[1]
+                  - (int)Math.round(grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING);
   }
 
 
@@ -205,6 +217,8 @@ class Stilling{
     s += "Mulige trekk svart:" + grunnMuligeTrekk[1] + "\n";
     s += "Hvit brikkesum: " + brikkeSum[0] + "\n";
     s += "Svart brikkesum: " + brikkeSum[1] + "\n";
+    s += "Hvit trusselbonus: " + (grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING) + "\n";
+    s += "Svart trusselbonus: " + (grunnTrusselBonus[1] * Settinger.TRUSSELBONUS_VEKTING) + "\n";
     s += "Grunnrating: " + grunnRating + "\n";
     return s;
   }

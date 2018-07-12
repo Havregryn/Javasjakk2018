@@ -32,6 +32,7 @@ public class Settinger{
                                              18}; // Konge
 
   public static final int TREKK_VERDI = 1;
+  public static final double TRUSSELBONUS_VEKTING = 0.5;
 
 
 
