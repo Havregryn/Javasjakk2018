@@ -27,4 +27,6 @@ class Parti{
 
   public Stilling hentStilling(){ return stilling; }
 
+  public boolean hentAutomatisk(int farge){ return automatisk[farge]; }
+
 }

@@ -3,6 +3,7 @@ Instans av Stilling representerer stilling som vises på skjermen. Det foregår 
 toveis kommunikasjon mellom uiMaster og Stilling instans.
 */
 import java.util.ArrayList;
+import java.util.Random;
 
 class Stilling{
   private UIMaster uiMaster;
@@ -15,17 +16,25 @@ class Stilling{
   private int brikkeSum[];
   private int grunnMuligeTrekk[];
   private double[] grunnTrusselBonus = {0.0, 0.0};
+  private boolean[] erISjakk = {false, false};
   private String evalStreng = "";
 
   private boolean[] kongeErUflyttet = {true, true};
   private boolean[] aTaarnErUflyttet = {true, true};
   private boolean[] hTaarnErUflyttet = {true, true};
+  private boolean[] c_d_erTruet ={false, false};
+  private boolean[] f_g_erTruet = {false, false};
 
+  private Random tilfeldig = new Random();
+
+  //FEILSØK lOGG:
+  private String logg = "LOGG:\n";
+
+  //Konstruktør, reell/imag: felles er brettet
   public Stilling(int[][][] brettet, int nesteTrekkFarge, Parti parti, UIMaster uiMaster){
     this.brettet = brettet;
     this.nesteTrekkFarge = nesteTrekkFarge;
-    if(nesteTrekkFarge == 0){ forrigeTrekkFarge = 1; }
-    else{ forrigeTrekkFarge = 0; }
+    forrigeTrekkFarge = 1 - nesteTrekkFarge;
     this.parti = parti;
     this.uiMaster = uiMaster;
     muligeTrekk = new ArrayList<Trekk>(40);
@@ -42,6 +51,7 @@ class Stilling{
     oppdaterGrunnRating();
   }
 
+  //reell/imag: begge
   private void initierBrikkeSum(){
     // UFERDIG
     for(int x = 0; x <= 7; x++){
@@ -55,7 +65,7 @@ class Stilling{
       }
     }
   }
-
+  // reell/imag: må initieres via konstruktør i imag!!
   public void initierRokadeVariabler(){
     // Rokade er kun mulig dersom konge og tårn er satt opp på normal startplass:
     kongeErUflyttet[0] = (brettet[0][4][0] == 6);
@@ -66,7 +76,7 @@ class Stilling{
     hTaarnErUflyttet[1] = (brettet[1][7][7] == 4);
 
   }
-
+  // reell/imag: KUN reell!
   public void settOppBrikkerUI(){
     int hvitPaaFelt, svartPaaFelt;
     for(int x = 0; x < 8; x++){
@@ -82,93 +92,113 @@ class Stilling{
   // TESTMETODE:
   public String hentEvalStreng(){ return evalStreng; }
 
-  public int hentFelt(int farge, int x, int y){ return brettet[farge][x][y]; }
-
+  // reell/imag: Brukes denne av Evaluator?
   public int[][][] hentBrett(){ return brettet; }
 
+  // reell/imag: Brukes av evaluator!
   public int hentNesteTrekkFarge(){ return nesteTrekkFarge; }
 
+  // reell/imag: Evaluator!
   public ArrayList<Trekk> hentTrekkListe(){ return muligeTrekk; }
 
-  public void leggTilTrekk(int evFarge, int brikkeTypeNr, int fraX, int fraY, int tilX, int tilY){
+  // reell/imag: Evaluator!!
+  public void leggTilTrekk(int evFarge, int brikkeTypeNr, int trekkType, int fraX, int fraY, int tilX, int tilY){
     grunnMuligeTrekk[evFarge] += Settinger.TREKK_VERDI;
     if(evFarge == nesteTrekkFarge){
-      muligeTrekk.add(new Trekk(brikkeTypeNr, fraX, fraY, tilX, tilY));
+      muligeTrekk.add(new Trekk(evFarge, brikkeTypeNr, trekkType, fraX, fraY, tilX, tilY));
+    }
+    if(brettet[1 - evFarge][tilX][tilY] == 6){ erISjakk[1 - evFarge] = true; }
+    // Oppdaterer flagg som varsler om trussel som gjør rokade ulovlig:
+    // NB: Ulovlig rokade kan allikevel bli lagt inn dersom trusseltrekk ikke er registrert først.
+    // Disse ulovlige rokadene fjernes ved framsyn ett trekk:
+    if(evFarge == 0 && tilY == 7){
+      logg += "truer muligens svart rokade\n";
+      if(tilX == 2 || tilX == 3){ c_d_erTruet[1] = true; logg+= ("Svart cd truet av felt: " + fraX + ", " + fraY + "\n");}
+      if(tilX == 5 || tilX == 6){ f_g_erTruet[1] = true; logg+= "Svart fg truet av felt: " + fraX + ", " + fraY + "\n";}
+    }
+    if(evFarge == 1 && tilY == 0){
+      logg += "truer muligens hvit rokade\n";
+      if(tilX == 2 || tilX == 3){ c_d_erTruet[0] = true; logg+= ("Hvit cd truet av felt: " + fraX + ", " + fraY + "\n");}
+      if(tilX == 5 || tilX == 6){ f_g_erTruet[0] = true; logg += ("Hvit fg truet av felt: " + fraX + ", " + fraY + "\n");}
     }
   }
 
 
-
+// reell/imag: KUN UIMaster.
+/**
+Metode som evaluerer et mulig trekk mottat fra UIMaster og utfører dette trekket
+dersom det ligger i mulige-trekk listen. Metdoen returner et resultat
+som angir om dette er et gyldig trekk, og isåfall type trekk.
+Dersom trekket er gyldig utføres det, deretter resettes alle stillings variabler,
+farge byttes og stilling evalueres.
+Metoden benyttes kun av UIMaster.
+*/
   public int manueltTrekk(int fraX, int fraY, int tilX, int tilY){
-    int resultat = -1;
-    for(Trekk trekk : muligeTrekk){
-      if(fraX == trekk.hentFraX() &&
-         fraY == trekk.hentFraY() &&
-         tilX == trekk.hentTilX() &&
-         tilY == trekk.hentTilY()){
+    int trekkType = -1;
 
-
-           // Utfører trekket!
-           brettet[nesteTrekkFarge][tilX][tilY] = brettet[nesteTrekkFarge][fraX][fraY];
-           brettet[nesteTrekkFarge][fraX][fraY] = 0;
-
-           boolean bondeForvandling = (trekk.hentBrikkeTypeNr() == 1 && tilY == (7 - nesteTrekkFarge * 7));
-           // Sjekker om rokade:
-           if(trekk.hentBrikkeTypeNr() == 6 && fraX - tilX == 2){
-             brettet[nesteTrekkFarge][0][fraY] = 0;
-             brettet[nesteTrekkFarge][3][fraY] = 4;
-             resultat = 2; // Indikerer lang rokade med a Tårn.
-           }
-           else if(trekk.hentBrikkeTypeNr() == 6 && fraX - tilX == -2){
-             brettet[nesteTrekkFarge][7][fraY] = 0;
-             brettet[nesteTrekkFarge][5][fraY] = 4;
-             resultat = 3; // indikerer kort rokade med h tårn.
-           }
-           else{
-             // Ikke rokade, vanlig trekk (evt bondeforvandling):
-             if(brettet[forrigeTrekkFarge][tilX][tilY] == 0){
-               if(bondeForvandling){
-                 brettet[nesteTrekkFarge][tilX][tilY] = 5;
-                 brikkeSum[nesteTrekkFarge] -= Settinger.BRIKKEVERDIER[1];
-                 brikkeSum[nesteTrekkFarge] += Settinger.BRIKKEVERDIER[5];
-                 resultat = 4;
-               }
-               else { resultat = 0; }
-             }
-             else{
-               // Utslag av brikke, evt med bondeForvandling:
-               brikkeSum[forrigeTrekkFarge] -= Settinger.BRIKKEVERDIER[brettet[forrigeTrekkFarge][tilX][tilY]];
-               brettet[forrigeTrekkFarge][tilX][tilY] = 0;
-               if(bondeForvandling){
-                 brettet[nesteTrekkFarge][tilX][tilY] = 5;
-                 brikkeSum[nesteTrekkFarge] -= Settinger.BRIKKEVERDIER[1];
-                 brikkeSum[nesteTrekkFarge] += Settinger.BRIKKEVERDIER[5];
-                 resultat = 5;
-               }
-               else { resultat = 1; }
-             }
-           }
-
-
-           //Sjekk om rokadebetingelser blir endret som følge av trekket:
-           if(fraY == nesteTrekkFarge * 7){
-             if(fraX == 0 && aTaarnErUflyttet[nesteTrekkFarge] == true){
-               aTaarnErUflyttet[nesteTrekkFarge] = false;
-             }
-             if(fraX == 7 && hTaarnErUflyttet[nesteTrekkFarge] == true){
-               hTaarnErUflyttet[nesteTrekkFarge] = false;
-             }
-             if(fraX == 4 && kongeErUflyttet[nesteTrekkFarge] == true){
-               kongeErUflyttet[nesteTrekkFarge] = false;
-             }
-           }
-           break; // Avbryter søk i mulige trekk-listen fordi match ble funnet/trekk ble utført.
+    for(Trekk trekket : muligeTrekk){
+      if(fraX == trekket.hentFraX() && fraY == trekket.hentFraY() &&
+         tilX == trekket.hentTilX() && tilY == trekket.hentTilY()){
+           trekkType = trekket.hentTrekkType();
+           utforTrekk(trekket);
+           break;
          }
     }
-    if(resultat != -1){
-      byttTrekkFarge(); }
-    return resultat;
+    if(trekkType != -1){ byttTrekkFarge(); }
+    return trekkType;
   }
+
+  // reell/imag: Brukes KUN av UiMaster:
+  public Trekk autoTrekk(){
+    // Denne metoden skal utføre trekket med høyest ranking i mulige trekk listen.
+    // Dersom flere med samme ranking gjøres et tilfeldig valg av trekk.
+    // Dersom ingen mulige trekk
+    Trekk trekket = null;
+    if(muligeTrekk.size() > 0){
+      trekket = muligeTrekk.get(tilfeldig.nextInt(muligeTrekk.size()));
+    }
+    utforTrekk(trekket);
+    byttTrekkFarge();
+    return trekket;
+  }
+
+  private void utforTrekk(Trekk trekket){
+    int trekkType = trekket.hentTrekkType();
+    int farge = trekket.hentFarge();
+    int fraX = trekket.hentFraX();
+    int fraY = trekket.hentFraY();
+    int tilX = trekket.hentTilX();
+    int tilY = trekket.hentTilY();
+
+    brettet[nesteTrekkFarge][tilX][tilY] = brettet[nesteTrekkFarge][fraX][fraY];
+    brettet[nesteTrekkFarge][fraX][fraY] = 0;
+
+    // Trekker fra brikkeSum når brikke slås ut:
+    if(trekkType == 1 || trekkType == 5 ){
+      brikkeSum[1 - farge] -= Settinger.BRIKKEVERDIER[brettet[1 - farge][tilX][tilY]];
+      brettet[1 - farge][tilX][tilY] = 0;
+    }
+    // Endrer brikkeSum og brikkeverdi ved bondeForvandling:
+    if(trekkType == 4 || trekkType == 5){
+      brettet[farge][tilX][tilY] = 5;
+      brikkeSum[farge] -= Settinger.BRIKKEVERDIER[1];
+      brikkeSum[farge] += Settinger.BRIKKEVERDIER[5];
+    }
+
+    //Sjekk om rokadebetingelser blir endret som følge av trekket:
+    if(fraY == farge * 7){
+      if(fraX == 0 && aTaarnErUflyttet[farge] == true){
+        aTaarnErUflyttet[farge] = false;
+      }
+      if(fraX == 7 && hTaarnErUflyttet[farge] == true){
+        hTaarnErUflyttet[farge] = false;
+      }
+      if(fraX == 4 && kongeErUflyttet[farge] == true){
+        kongeErUflyttet[farge] = false;
+      }
+    }
+  }
+
 
   private void byttTrekkFarge(){
     muligeTrekk = new ArrayList<Trekk>(40);
@@ -176,19 +206,27 @@ class Stilling{
     grunnMuligeTrekk[1] = 0;
     grunnTrusselBonus[0] = 0;
     grunnTrusselBonus[1] = 0;
+    c_d_erTruet[0] = false;
+    c_d_erTruet[1] = false;
+    f_g_erTruet[0] = false;
+    f_g_erTruet[1] = false;
     forrigeTrekkFarge = nesteTrekkFarge;
     nesteTrekkFarge = 1 - nesteTrekkFarge;
+    erISjakk[0] = false;
+    erISjakk[1] = false;
+    logg = "";
     evalStreng = Evaluator.grunnEvaluering(this);
     oppdaterGrunnRating();
   }
-
+  // reell/imag: Evaluering
   public boolean hentLangRokadeMulig(int farge){
-    return (kongeErUflyttet[farge] && aTaarnErUflyttet[farge]);
+    return (kongeErUflyttet[farge] && aTaarnErUflyttet[farge] && !c_d_erTruet[farge]);
   }
+  // reell/imag: Evaluering
   public boolean hentKortRokadeMulig(int farge){
-    return (kongeErUflyttet[farge] && hTaarnErUflyttet[farge]);
+    return (kongeErUflyttet[farge] && hTaarnErUflyttet[farge] && !f_g_erTruet[farge]);
   }
-
+  // reell/imag: Evaluering
   public void leggTilTrusselBonus(int farge, int bonus){
     grunnTrusselBonus[farge] += bonus;
   }
@@ -202,12 +240,14 @@ class Stilling{
                   - (int)Math.round(grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING);
   }
 
-
+  // reell/imag: Kjekk å ha uansett
   @Override
   public String toString(){
     String s = "";
     if(nesteTrekkFarge == 0){ s += "HVIT SIN TUR\n"; }
     else{ s += "SVART SIN TUR\n"; }
+    if(erISjakk[0]){ s += "HVIT ER I SJAKK!!\n"; }
+    if(erISjakk[1]){ s += "SVART ER I SJAKK!!\n"; }
     s += "\nMulige trekk i stilling:\n";
     int i = 1;
     for(Trekk t : muligeTrekk){
@@ -220,6 +260,8 @@ class Stilling{
     s += "Hvit trusselbonus: " + (grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING) + "\n";
     s += "Svart trusselbonus: " + (grunnTrusselBonus[1] * Settinger.TRUSSELBONUS_VEKTING) + "\n";
     s += "Grunnrating: " + grunnRating + "\n";
+    s += "\nLOGG:\n" + (logg + "\n");
+
     return s;
   }
 

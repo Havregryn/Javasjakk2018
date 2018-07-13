@@ -30,6 +30,7 @@ public class UIMaster extends Application{
 
   private static Text statusFelt, hoyreTekstFelt;
   private static Administrator administrator;
+  private static Parti partiet;
   private static Stilling stilling;
   private static ArrayList<ImageView> hviteBrikkerIV = new ArrayList<ImageView>(16);
   private static ArrayList<ImageView> svarteBrikkerIV = new ArrayList<ImageView>(16);
@@ -103,12 +104,12 @@ public class UIMaster extends Application{
     statusFelt = new Text("Tekstfeltet");
     statusFelt.setWrappingWidth(Settinger.BRETT_BREDDE + Settinger.RUTE_BREDDE);
     //statusFelt.setY(Settinger.BRETT_BREDDE + 100);
-    statusFelt.setFont(new Font(20));
+    statusFelt.setFont(new Font(16));
     statusFelt.setTextAlignment(TextAlignment.CENTER);
 
     hoyreTekstFelt = new Text("Høyre");
     hoyreTekstFelt.setWrappingWidth(Settinger.RUTE_BREDDE * 6);
-    hoyreTekstFelt.setFont(new Font(16));
+    hoyreTekstFelt.setFont(new Font(12));
 
 
 
@@ -128,9 +129,13 @@ public class UIMaster extends Application{
     teater.show();
 
     administrator = new Administrator(this);
+    partiet = administrator.hentParti();
     stilling = administrator.hentStilling();
     hoyreTekstFelt.setText(stilling.toString());
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
+    // OPPSETT FERDIG, STARTER AUTOSJAKK:
+    if(partiet.hentAutomatisk(0)){ autoTrekk(); }
+
   }
 
   public void brikkeFlyttetMedMus(ImageView iv, double fraX, double fraY, double tilX, double tilY){
@@ -139,64 +144,65 @@ public class UIMaster extends Application{
     int fraFeltY = 7 - (int)((fraY - offset)/Settinger.RUTE_BREDDE);
     int tilFeltX = (int)((tilX - offset)/Settinger.RUTE_BREDDE);
     int tilFeltY = 7 - (int)((tilY - offset)/Settinger.RUTE_BREDDE);
-    String s = "Fra: " + fraFeltX + ", " + fraFeltY + " til: " + tilFeltX + ", " + tilFeltY;
-    statusFelt.setText(s);
-    //statusFelt.setText("Ant trekk: " + Integer.toString(stilling.hentTrekkListe().size()));
-
+    //statusFelt.setText(s);
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
 
     if(tilFeltX < 0 || tilFeltX > 7 || tilFeltY < 0 || tilFeltY > 7) {
       tilFeltX = fraFeltX;
       tilFeltY = fraFeltY;
     }
+    int trekkType = stilling.manueltTrekk(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
+
+    visTrekk(false, trekkType, fraFeltX, fraFeltY, tilFeltX, tilFeltY);
+    if(partiet.hentAutomatisk(stilling.hentNesteTrekkFarge())){ autoTrekk(); }
+  }
+
+  private void autoTrekk(){
+    Trekk trekket = stilling.autoTrekk();
+    visTrekk(true, trekket.hentTrekkType(), trekket.hentFraX(), trekket.hentFraY(),
+             trekket.hentTilX(), trekket.hentTilY());
+    if(partiet.hentAutomatisk(stilling.hentNesteTrekkFarge())){ autoTrekk(); }
+  }
+
+  // Metode som brukes av både manuelt og auto trekk, viser trekket:
+  private void visTrekk(boolean auto, int trekkType, int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
 
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
-
-
-
-    int resultat = stilling.manueltTrekk(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
+    ImageView iv = (ImageView)fraSP.getChildren().get(2);
     hoyreTekstFelt.setText(stilling.toString());
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
-    //statusFelt.setText("resultat: " + resultat);
-    if(resultat == -1){
+    String s = "Fra: " + fraFeltX + ", " + fraFeltY + " til: " + tilFeltX + ", " + tilFeltY;
+    statusFelt.setText(s + " trekkType: " + trekkType);
+    if(auto){ animerFlyttAvBrikke( fraFeltX, fraFeltY, tilFeltX, tilFeltY); }
+    else if( trekkType >= 0 && trekkType <= 3){
+      fraSP.getChildren().remove(iv);
+      iv.setTranslateX(0);
+      iv.setTranslateY(0);
+      tilSP.getChildren().add(iv);
+    }
+    if(trekkType == -1){
       // Ikke lovlig trekk, brikke flyttes tilbake:
       animerReturAvBrikke(iv);
     }
-    else if(resultat == 0){
+    else if(trekkType == 0){
       // Trekk til tomt felt:
-      fraSP.getChildren().remove(iv);
-      iv.setTranslateX(0);
-      iv.setTranslateY(0);
-      tilSP.getChildren().add(iv);
     }
-    else if(resultat == 1){
+    else if(trekkType == 1){
       // Trekk med utslag av motstanders brikker:
       animerUtslagAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
-      fraSP.getChildren().remove(iv);
-      iv.setTranslateX(0);
-      iv.setTranslateY(0);
-      tilSP.getChildren().add(iv);
     }
-    else if(resultat == 2){
+    else if(trekkType == 2){
       // Lang rokade:
-      fraSP.getChildren().remove(iv);
-      iv.setTranslateX(0);
-      iv.setTranslateY(0);
-      tilSP.getChildren().add(iv);
       // Flytter tårnet:
       animerFlyttAvBrikke(0, fraFeltY, 3, fraFeltY);
     }
-    else if(resultat == 3){
+    else if(trekkType == 3){
       // Kort rokade:
-      fraSP.getChildren().remove(iv);
-      iv.setTranslateX(0);
-      iv.setTranslateY(0);
-      tilSP.getChildren().add(iv);
       // Flytter tårnet:
       animerFlyttAvBrikke(7, fraFeltY, 5, fraFeltY);
     }
-    else if(resultat == 4){
+    else if(trekkType == 4){
       // bondeforvandling uten utslag av brikke:
       animerBondeForvandling(tilFeltX, tilFeltY);
       fraSP.getChildren().remove(iv);
@@ -216,7 +222,7 @@ public class UIMaster extends Application{
       }
 
     }
-    else if(resultat == 5){
+    else if(trekkType == 5){
       // bondeforvandling med utslag av brikke:
       animerUtslagAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
       fraSP.getChildren().remove(iv);
@@ -234,9 +240,6 @@ public class UIMaster extends Application{
         tilSP.getChildren().add(nyDronningIV);
         svarteBrikkerIV.add(nyDronningIV);
       }
-
-
-
     }
   }
 
