@@ -161,12 +161,12 @@ public class UIMaster extends Application{
     Trekk trekket = stilling.autoTrekk();
     visTrekk(true, trekket.hentTrekkType(), trekket.hentFraX(), trekket.hentFraY(),
              trekket.hentTilX(), trekket.hentTilY());
-    if(partiet.hentAutomatisk(stilling.hentNesteTrekkFarge())){ autoTrekk(); }
   }
 
   // Metode som brukes av både manuelt og auto trekk, viser trekket:
   private void visTrekk(boolean auto, int trekkType, int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
-
+    int farge = 1 - stilling.hentNesteTrekkFarge();
+    boolean nesteAuto = partiet.hentAutomatisk(1- farge);
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
     ImageView iv = (ImageView)fraSP.getChildren().get(2);
@@ -174,76 +174,83 @@ public class UIMaster extends Application{
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
     String s = "Fra: " + fraFeltX + ", " + fraFeltY + " til: " + tilFeltX + ", " + tilFeltY;
     statusFelt.setText(s + " trekkType: " + trekkType);
-    if(auto){ animerFlyttAvBrikke( fraFeltX, fraFeltY, tilFeltX, tilFeltY); }
-    else if( trekkType >= 0 && trekkType <= 3){
-      fraSP.getChildren().remove(iv);
-      iv.setTranslateX(0);
-      iv.setTranslateY(0);
-      tilSP.getChildren().add(iv);
-    }
-    if(trekkType == -1){
-      // Ikke lovlig trekk, brikke flyttes tilbake:
-      animerReturAvBrikke(iv);
-    }
-    else if(trekkType == 0){
-      // Trekk til tomt felt:
-    }
-    else if(trekkType == 1){
-      // Trekk med utslag av motstanders brikker:
-      animerUtslagAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
-    }
-    else if(trekkType == 2){
-      // Lang rokade:
-      // Flytter tårnet:
-      animerFlyttAvBrikke(0, fraFeltY, 3, fraFeltY);
-    }
-    else if(trekkType == 3){
-      // Kort rokade:
-      // Flytter tårnet:
-      animerFlyttAvBrikke(7, fraFeltY, 5, fraFeltY);
-    }
-    else if(trekkType == 4){
-      // bondeforvandling uten utslag av brikke:
-      animerBondeForvandling(tilFeltX, tilFeltY);
-      fraSP.getChildren().remove(iv);
-      if(hviteBrikkerIV.contains(iv)){
-        hviteBrikkerIV.remove(iv);
-        UIHvitDronning nyDronning = new UIHvitDronning(this, tilFeltX, tilFeltY);
-        ImageView nyDronningIV = nyDronning.bildeViser();
-        tilSP.getChildren().add(nyDronningIV);
-        hviteBrikkerIV.add(nyDronningIV);
-      }
-      else{
-        svarteBrikkerIV.remove(iv);
-        UISvartDronning nyDronning = new UISvartDronning(this, tilFeltX, tilFeltY);
-        ImageView nyDronningIV = nyDronning.bildeViser();
-        tilSP.getChildren().add(nyDronningIV);
-        svarteBrikkerIV.add(nyDronningIV);
-      }
 
-    }
-    else if(trekkType == 5){
-      // bondeforvandling med utslag av brikke:
-      animerUtslagAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY);
-      fraSP.getChildren().remove(iv);
-      if(hviteBrikkerIV.contains(iv)){
-        hviteBrikkerIV.remove(iv);
-        UIHvitDronning nyDronning = new UIHvitDronning(this, tilFeltX, tilFeltY);
-        ImageView nyDronningIV = nyDronning.bildeViser();
-        tilSP.getChildren().add(nyDronningIV);
-        hviteBrikkerIV.add(nyDronningIV);
+    if(auto){ animerFlyttAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY, trekkType, nesteAuto); }
+    else{
+      // Kun ved manuelt trekk:
+      if( trekkType >= 0 && trekkType <= 3){
+        fraSP.getChildren().remove(iv);
+        iv.setTranslateX(0);
+        iv.setTranslateY(0);
+        tilSP.getChildren().add(iv);
       }
-      else{
-        svarteBrikkerIV.remove(iv);
-        UISvartDronning nyDronning = new UISvartDronning(this, tilFeltX, tilFeltY);
-        ImageView nyDronningIV = nyDronning.bildeViser();
-        tilSP.getChildren().add(nyDronningIV);
-        svarteBrikkerIV.add(nyDronningIV);
+      if(trekkType == -1){
+        // Ikke lovlig trekk, brikke flyttes tilbake:
+        animerReturAvBrikke(iv);
       }
-    }
+      else if(trekkType == 0){
+        // Trekk til tomt felt:
+      }
+      else if(trekkType == 1){
+        // Trekk med utslag av motstanders brikker:
+        animerUtslagAvBrikke(tilFeltX, tilFeltY, nesteAuto);
+      }
+      else if(trekkType == 2){
+        // Lang rokade:
+        // Flytter tårnet:
+        animerFlyttAvBrikke(0, fraFeltY, 3, fraFeltY, trekkType, nesteAuto);
+      }
+      else if(trekkType == 3){
+        // Kort rokade:
+        // Flytter tårnet:
+        animerFlyttAvBrikke(7, fraFeltY, 5, fraFeltY, trekkType, nesteAuto);
+      }
+      else if(trekkType == 4){
+        // bondeforvandling uten utslag av brikke:
+        animerBondeForvandling(tilFeltX, tilFeltY, 0, nesteAuto);
+        fraSP.getChildren().remove(iv);
+        if(hviteBrikkerIV.contains(iv)){
+          hviteBrikkerIV.remove(iv);
+          UIHvitDronning nyDronning = new UIHvitDronning(this, tilFeltX, tilFeltY);
+          ImageView nyDronningIV = nyDronning.bildeViser();
+          tilSP.getChildren().add(nyDronningIV);
+          hviteBrikkerIV.add(nyDronningIV);
+        }
+        else{
+          svarteBrikkerIV.remove(iv);
+          UISvartDronning nyDronning = new UISvartDronning(this, tilFeltX, tilFeltY);
+          ImageView nyDronningIV = nyDronning.bildeViser();
+          tilSP.getChildren().add(nyDronningIV);
+          svarteBrikkerIV.add(nyDronningIV);
+        }
+
+      }
+      else if(trekkType == 5){
+        // bondeforvandling med utslag av brikke:
+        animerUtslagAvBrikke(tilFeltX, tilFeltY, nesteAuto);
+        fraSP.getChildren().remove(iv);
+        if(hviteBrikkerIV.contains(iv)){
+          hviteBrikkerIV.remove(iv);
+          UIHvitDronning nyDronning = new UIHvitDronning(this, tilFeltX, tilFeltY);
+          ImageView nyDronningIV = nyDronning.bildeViser();
+          tilSP.getChildren().add(nyDronningIV);
+          hviteBrikkerIV.add(nyDronningIV);
+        }
+        else{
+          svarteBrikkerIV.remove(iv);
+          UISvartDronning nyDronning = new UISvartDronning(this, tilFeltX, tilFeltY);
+          ImageView nyDronningIV = nyDronning.bildeViser();
+          tilSP.getChildren().add(nyDronningIV);
+          svarteBrikkerIV.add(nyDronningIV);
+        }
+      }
+   }
+
+
+
   }
 
-  public static void animerReturAvBrikke(ImageView iv){
+  public void animerReturAvBrikke(ImageView iv){
     // OBS: Flytter også brikkeIV over til nytt felt i feltene!!
     TranslateTransition overgang = new TranslateTransition(Duration.millis(Settinger.ANIMER_TREKK_TID), iv);
     overgang.setToX(0);
@@ -251,7 +258,7 @@ public class UIMaster extends Application{
     overgang.play();
   }
 
-  public static void animerFlyttAvBrikke(int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
+  public void animerFlyttAvBrikke(int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY, int nesteHandling, boolean nesteAuto){
     ImageView iv;
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
@@ -268,6 +275,27 @@ public class UIMaster extends Application{
         iv.setTranslateX(0);
         iv.setTranslateY(0);
         tilSP.getChildren().add(iv);
+        switch(nesteHandling){
+          case 0:
+            if(nesteAuto){ autoTrekk(); }
+            break;
+          case 1:
+            animerUtslagAvBrikke(tilFeltX, tilFeltY, nesteAuto);
+            break;
+          case 2:
+            animerFlyttAvBrikke(0, fraFeltY, 3, fraFeltY, 0, nesteAuto);
+            break;
+          case 3:
+            animerFlyttAvBrikke(7, fraFeltY, 5, fraFeltY, 0, nesteAuto);
+            break;
+          case 4:
+            animerBondeForvandling(tilFeltX, tilFeltY, 0, nesteAuto);
+            break;
+          case 5:
+            animerBondeForvandling(tilFeltX, tilFeltY, 1, nesteAuto);
+            break;
+        }
+
       }
     });
     brikkeBevegelse.setToX(deltaX);
@@ -275,35 +303,23 @@ public class UIMaster extends Application{
     brikkeBevegelse.play();
   }
 
-  public static void animerUtslagAvBrikke(int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
+  public void animerUtslagAvBrikke(int feltX, int feltY, boolean nesteAuto){
     ImageView hovedBrikkeIV;
     ImageView utslattBrikkeIV;
     Rectangle feltet;
-    StackPane fraSP = feltene[fraFeltX][fraFeltY];
-    StackPane tilSP = feltene[tilFeltX][tilFeltY];
-    hovedBrikkeIV = (ImageView)fraSP.getChildren().get(2);
-    utslattBrikkeIV = (ImageView)tilSP.getChildren().get(2);
+    StackPane SP = feltene[feltX][feltY];
+    utslattBrikkeIV = (ImageView)SP.getChildren().get(2);
     hviteBrikkerIV.remove(utslattBrikkeIV);
     svarteBrikkerIV.remove(utslattBrikkeIV);
-    feltet = (Rectangle)tilSP.getChildren().get(1);
-    hovedBrikkeIV.getParent().toFront();
-    int deltaX = (tilFeltX - fraFeltX) * Settinger.RUTE_BREDDE;
-    int deltaY = (fraFeltY - tilFeltY) * Settinger.RUTE_BREDDE;
-    // Lager en Sekvensiell transition med tre transitions: (flytt, blink, fjern)
-    TranslateTransition brikkeBevegelse = new TranslateTransition(
-                                                Duration.millis(Settinger.ANIMER_TREKK_TID),
-                                                hovedBrikkeIV);
-    brikkeBevegelse.setToX(deltaX);
-    brikkeBevegelse.setToY(deltaY);
-
+    feltet = (Rectangle)SP.getChildren().get(1);
     FadeTransition blinking = new FadeTransition(Duration.millis(75), feltet);
     blinking.setFromValue(1.0);
     blinking.setToValue(0.1);
     blinking.setAutoReverse(true);
     blinking.setCycleCount(20);
 
-    deltaX = (-Settinger.BRETT_BREDDE);
-    deltaY = 0;
+    int deltaX = (-Settinger.BRETT_BREDDE);
+    int deltaY = 0;
 
     TranslateTransition utBrikkeBevegelse = new TranslateTransition(
                                                   Duration.millis(Settinger.ANIMER_TREKK_TID),
@@ -316,14 +332,16 @@ public class UIMaster extends Application{
     st.setOnFinished(new EventHandler<ActionEvent>(){
       @Override
       public void handle(ActionEvent e){
-        tilSP.getChildren().remove(utslattBrikkeIV);
+        SP.getChildren().remove(utslattBrikkeIV);
+        if(nesteAuto){ autoTrekk(); }
       }
     });
     st.play();
   }
 
-  public static void animerBondeForvandling(int x, int y){
+  public void animerBondeForvandling(int x, int y, int nesteHandling, boolean nesteAuto){
     StackPane feltetSP = feltene[x][y];
+    ImageView iv = (ImageView)feltetSP.getChildren().get(2);
     Rectangle bakgrunn = (Rectangle)feltetSP.getChildren().get(0);
     bakgrunn.setFill(Color.ORANGE);
     Rectangle feltet = (Rectangle)feltetSP.getChildren().get(1);
@@ -336,6 +354,23 @@ public class UIMaster extends Application{
       @Override
       public void handle(ActionEvent e){
         bakgrunn.setFill(Color.RED);
+        feltetSP.getChildren().remove(iv);
+        if(hviteBrikkerIV.contains(iv)){
+          hviteBrikkerIV.remove(iv);
+          UIHvitDronning nyDronning = new UIHvitDronning(UIMaster.this, x, y);
+          ImageView nyDronningIV = nyDronning.bildeViser();
+          feltetSP.getChildren().add(nyDronningIV);
+          hviteBrikkerIV.add(nyDronningIV);
+        }
+        else{
+          svarteBrikkerIV.remove(iv);
+          UISvartDronning nyDronning = new UISvartDronning(UIMaster.this, x, y);
+          ImageView nyDronningIV = nyDronning.bildeViser();
+          feltetSP.getChildren().add(nyDronningIV);
+          svarteBrikkerIV.add(nyDronningIV);
+        }
+        if(nesteHandling == 0){ autoTrekk(); }
+        else{ animerUtslagAvBrikke(x, y, nesteAuto); }
       }
     });
     blinking.play();

@@ -10,7 +10,11 @@ class Administrator{
   public Administrator(UIMaster uiMaster){
     this.uiMaster = uiMaster;
     //uiMaster.leggInnBrikke(0, 1, 1, 1);
-    partiet = new Parti(standardStartBrett(), true, uiMaster, false, true);
+    partiet = new Parti(standardStartBrett(),
+                        true,   // Hvit begynner?
+                        uiMaster,
+                        true,   // Hvit auto?
+                        true);  // Svart auto?
   }
 
   /**
@@ -55,11 +59,11 @@ class Administrator{
                                 {0, 0, 0, 0, 0, 0, 0, 0}, //5
                                 {0, 0, 0, 0, 0, 0, 0, 0}, //4
                                 {0, 0, 0, 0, 0, 0, 0, 0}, //3
-                                {1, 0, 0, 0, 0, 0, 0, 1}, //2
-                                {4, 0, 0, 0, 6, 0, 0, 4}};//1
+                                {0, 0, 0, 0, 0, 0, 0, 1}, //2
+                                {0, 0, 0, 0, 0, 0, 0, 0}};//1
     //                            A  B  C  D  E  F  G  H
-    int brettOppsettSvart[][] = {{0, 4, 0, 0, 0, 0, 0, 0}, //8
-                                 {0, 0, 0, 0, 0, 0, 0, 0}, //7
+    int brettOppsettSvart[][] = {{0, 0, 0, 0, 0, 0, 0, 0}, //8
+                                 {0, 0, 1, 0, 0, 0, 0, 0}, //7
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //6
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //5
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //4

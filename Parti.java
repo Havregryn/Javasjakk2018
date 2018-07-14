@@ -5,7 +5,7 @@
 class Parti{
 
   private boolean forsteTrekkHvit;
-  private int nesteTrekkFarge;
+  private int nesteTrekkFarge, trekkNr = 0;
   private UIMaster uiMaster;
   private Stilling stilling;
   private boolean[] automatisk;
@@ -16,8 +16,7 @@ class Parti{
     automatisk = new boolean[2];
     automatisk[0] = hvitErAuto;
     automatisk[1] = svartErAuto;
-    if(forsteTrekkHvit){ nesteTrekkFarge = 0; }
-    else{ nesteTrekkFarge = 1; }
+    if(forsteTrekkHvit){ nesteTrekkFarge = 0; } else{ nesteTrekkFarge = 1; }
     this.uiMaster = uiMaster;
     this.stilling = new Stilling(brettet, nesteTrekkFarge, this, uiMaster);
     stilling.settOppBrikkerUI();

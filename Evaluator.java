@@ -162,7 +162,7 @@ class Evaluator{
         }
         evalStreng += "x-1, y+2 OK! ";
       }
-      if(y < 7 && brettet[evFarge][x + 1][y + 2] == 0){
+      if(x < 7 && brettet[evFarge][x + 1][y + 2] == 0){
         if(brettet[motstander][x + 1][y + 2] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x + 1, y + 2);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + 1][y + 2]]);
