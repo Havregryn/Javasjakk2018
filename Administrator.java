@@ -14,7 +14,8 @@ class Administrator{
                         true,   // Hvit begynner?
                         uiMaster,
                         true,   // Hvit auto?
-                        true);  // Svart auto?
+                        true,  // Svart auto?
+                        16); // Dybde, mulige framtidige trekk tre-struktur.
   }
 
   /**
@@ -63,7 +64,7 @@ class Administrator{
                                 {0, 0, 0, 0, 0, 0, 0, 0}};//1
     //                            A  B  C  D  E  F  G  H
     int brettOppsettSvart[][] = {{0, 0, 0, 0, 0, 0, 0, 0}, //8
-                                 {0, 0, 1, 0, 0, 0, 0, 0}, //7
+                                 {1, 0, 0, 0, 0, 0, 0, 0}, //7
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //6
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //5
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //4
@@ -82,5 +83,5 @@ class Administrator{
   }
   public Parti hentParti(){ return partiet; }
 
-  public Stilling hentStilling(){ return partiet.hentStilling(); }
+  public StillingReell hentStilling(){ return partiet.hentStilling(); }
 }

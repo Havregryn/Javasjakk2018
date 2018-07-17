@@ -31,7 +31,7 @@ public class UIMaster extends Application{
   private static Text statusFelt, hoyreTekstFelt;
   private static Administrator administrator;
   private static Parti partiet;
-  private static Stilling stilling;
+  private static StillingReell stilling;
   private static ArrayList<ImageView> hviteBrikkerIV = new ArrayList<ImageView>(16);
   private static ArrayList<ImageView> svarteBrikkerIV = new ArrayList<ImageView>(16);
 

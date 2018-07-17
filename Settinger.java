@@ -20,7 +20,7 @@ public class Settinger{
   public static final int BRIKKER_TEGNING_BONDE_X = 1175;
   public static final int BRIKKER_TEGNING_BONDE_BREDDE = 134;
 
-  public static final int ANIMER_TREKK_TID = 100;
+  public static final int ANIMER_TREKK_TID = 1000;
 
   // BRIKKEVERDIER:
   public static final int[] BRIKKEVERDIER = {0,

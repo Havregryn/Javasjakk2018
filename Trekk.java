@@ -35,6 +35,13 @@ class Trekk{
   public int hentTilX(){ return tilX; }
   public int hentTilY(){ return tilY; }
 
+  public void settStillingEtterTrekk(StillingImag stIm){
+    stillingEtterTrekk = stIm;
+  }
+  public StillingImag hentStillingEtterTrekk(){
+    return (StillingImag) stillingEtterTrekk;
+  }
+
   public int hentRokadeType(){
     if(brikkeTypeNr == 6 && rokadePasseringsFeltX == 3){ return 1; } // Lang rokade
     if(brikkeTypeNr == 6 && rokadePasseringsFeltX == 5){ return 2; } // Kort rokade
@@ -45,10 +52,13 @@ class Trekk{
 
   @Override
   public String toString(){
+    String s = "Ittno";
+    if(stillingEtterTrekk != null){ s = stillingEtterTrekk.toString(); }
     return "Trekk brikkeType:  " + brikkeTypeNr +
            " fra: " + fraX + ", " + fraY +
            " til: " + tilX + ", " + tilY +
-           " trekkType: " + trekkType;
+           " trekkType: " + trekkType +
+           " st etter trekk: " + s;
   }
 
 }
