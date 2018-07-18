@@ -17,10 +17,16 @@ abstract class Stilling{
   private boolean[] f_g_erTruet = {false, false};
   protected int dybde;
 
+  // TESTING:
   private static int instansTeller = 0;
+  private static int utforteTrekk = 0;
+  private static int fargeBytte = 0;
+  private static int trekkLeggTil = 0;
+  private static int trekkRiktigFarge = 0;
 
 
-  private String evalStreng = "";
+
+  protected String evalStreng = "";
 
   protected Random tilfeldig = new Random();
 
@@ -82,8 +88,10 @@ abstract class Stilling{
 
   // reell/imag: begge!
   public void leggTilTrekk(int evFarge, int brikkeTypeNr, int trekkType, int fraX, int fraY, int tilX, int tilY){
+    trekkLeggTil++;
     grunnMuligeTrekk[evFarge] += Settinger.TREKK_VERDI;
     if(evFarge == nesteTrekkFarge){
+      trekkRiktigFarge++;
       muligeTrekk.add(new Trekk(evFarge, brikkeTypeNr, trekkType, fraX, fraY, tilX, tilY));
     }
     // Dersom trekket tar motstanders konge: motstander er i sjakk!!
@@ -108,6 +116,7 @@ abstract class Stilling{
 
   // private, intern, brukes av begge!
   protected void utforTrekk(Trekk trekket){
+    utforteTrekk++;
     int trekkType = trekket.hentTrekkType();
     int farge = trekket.hentFarge();
     int fraX = trekket.hentFraX();
@@ -146,6 +155,7 @@ abstract class Stilling{
 
   // begge!
   protected void byttTrekkFarge(){
+    fargeBytte++;
     muligeTrekk = new ArrayList<Trekk>(40);
     grunnMuligeTrekk[0] = 0;
     grunnMuligeTrekk[1] = 0;
@@ -159,7 +169,6 @@ abstract class Stilling{
     nesteTrekkFarge = 1 - nesteTrekkFarge;
     status.erISjakk[0] = false;
     status.erISjakk[1] = false;
-    logg = "";
     evalStreng = Evaluator.grunnEvaluering(this);
     oppdaterGrunnRating();
   }
@@ -188,7 +197,7 @@ abstract class Stilling{
 
   protected int[][][] kopiAvBrettet(){
     int[][][] brettKopi = new int[2][8][8];
-    for(int farge = 0; farge > 2; farge++){
+    for(int farge = 0; farge < 2; farge++){
       for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
           brettKopi[farge][x][y] = brettet[farge][x][y];
@@ -219,10 +228,12 @@ abstract class Stilling{
     s += "Svart trusselbonus: " + (grunnTrusselBonus[1] * Settinger.TRUSSELBONUS_VEKTING) + "\n";
     s += "Grunnrating: " + grunnRating + "\n";
     s += "Ant instanser: " + instansTeller;
+    s += " leggTilTrekk" + trekkLeggTil;
+    s += "trekkRiktigFarge: " + trekkRiktigFarge;
 
 
 
-    return s;
+    return evalStreng;
   }
 
 }

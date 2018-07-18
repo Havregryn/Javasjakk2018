@@ -53,7 +53,7 @@ class Trekk{
   @Override
   public String toString(){
     String s = "Ittno";
-    if(stillingEtterTrekk != null){ s = stillingEtterTrekk.toString(); }
+    //if(stillingEtterTrekk != null){ s = stillingEtterTrekk.toString(); }
     return "Trekk brikkeType:  " + brikkeTypeNr +
            " fra: " + fraX + ", " + fraY +
            " til: " + tilX + ", " + tilY +

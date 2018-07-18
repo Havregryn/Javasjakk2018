@@ -4,6 +4,12 @@ also used as a node in the look ahead tree. */
 
 class StillingImag extends Stilling{
 
+  // TIL TESTING:
+  private int trekkLeggTil, testTeller = 0;
+  private Trekk trekkPre;
+  private String logg = "\nIMAG ST LOGG\n";
+
+
   private Stilling forelder;
 
   public StillingImag(int[][][] brettet,
@@ -15,6 +21,7 @@ class StillingImag extends Stilling{
     super(brettet, status, trekkPre.hentFarge(), dybde);
     super.status = status;
     this.forelder = forelder;
+    this.trekkPre = trekkPre;
     super.utforTrekk(trekkPre);
     super.byttTrekkFarge();
     leggTilBarn();
@@ -24,13 +31,23 @@ class StillingImag extends Stilling{
     for(Trekk t : muligeTrekk){
       if(dybde > 0){
         t.settStillingEtterTrekk(new StillingImag(kopiAvBrettet(), t, status.kopi(), this, dybde - 1));
+        testTeller++;
       }
     }
   }
 
+/*
+  //TESTING!
+  @Override
+  public void leggTilTrekk(int evFarge, int brikkeTypeNr, int trekkType, int fraX, int fraY, int tilX, int tilY){
+    trekkLeggTil++;
+  }
+  */
+
   @Override
   public String toString(){
-    return " ant trekk: " + muligeTrekk.size();
+
+    return "Img ant barn:" + testTeller;
   }
 
 

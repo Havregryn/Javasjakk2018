@@ -1,40 +1,32 @@
 /**
-  Klasse med statiske metoder som evaluerer en stilling.
+  Klasse med statisk metode som evaluerer en stilling og finner mulige trekk.
+  NB: Trekk som fører til selvsjakk blir  IKKE fjernet, dette gjøres ved "look ahead"
+  ett trekk fram.
 */
 
 class Evaluator{
 
-  private static Stilling stilling = null;
-  private static int[][][] brettet = null;
-  private static int nesteTrekkFarge = 0;
-  private static int forrigeTrekkFarge = 0;
-
-  public static String grunnEvaluering(Stilling stillingen){
+  public static String grunnEvaluering(Stilling stilling){
     String evalStreng = "";
-    stilling = stillingen;
-    brettet = stilling.hentBrett();
-    nesteTrekkFarge = stilling.hentNesteTrekkFarge();
-    forrigeTrekkFarge = 1 - nesteTrekkFarge;
-
+    int[][][] brettet = stilling.hentBrett();
     for(int evFarge = 0; evFarge < 2; evFarge++ ){
-      boolean evaluererNesteTrekkFarge = (evFarge == nesteTrekkFarge);
       for(int y = 0; y < 8; y++){
         for(int x = 0; x < 8; x++){
           int felt = brettet[evFarge][x][y];
           switch(felt){
             case 0 : break;
 
-            case 1 :  evalStreng += grunnBondeEval(x, y, evFarge, evaluererNesteTrekkFarge);
+            case 1 :  evalStreng += grunnBondeEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 2 :  evalStreng += grunnSpringerEval(x, y, evFarge, evaluererNesteTrekkFarge);
+            case 2 :  evalStreng += grunnSpringerEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 3 :  evalStreng += grunnLoperEval(x, y, evFarge, evaluererNesteTrekkFarge);
+            case 3 :  evalStreng += grunnLoperEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 4 :  evalStreng += grunnTaarnEval(x, y, evFarge, evaluererNesteTrekkFarge);
+            case 4 :  evalStreng += grunnTaarnEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 5 :  evalStreng += grunnDronningEval(x, y, evFarge, evaluererNesteTrekkFarge);
+            case 5 :  evalStreng += grunnDronningEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 6 :  evalStreng += grunnKongeEval(x, y, evFarge, evaluererNesteTrekkFarge);
+            case 6 :  evalStreng += grunnKongeEval(stilling, brettet, x, y, evFarge);
                       break;
           }
         }
@@ -43,9 +35,10 @@ class Evaluator{
     return evalStreng;
   }
 
-  private static String grunnBondeEval(int x, int y, int evFarge, boolean evaluererNesteTrekkFarge){
+  private static String grunnBondeEval(Stilling stilling, int[][][] brettet,
+                                       int x, int y, int evFarge){
+
     String bondeEvalStreng = "Bonde på: " + x + ", " + y + ": ";
-    int[][][] brettet = stilling.hentBrett();
     int retning = (evFarge * -2) + 1;
     int motstander = 1 - evFarge;
     int trekkType = 0;
@@ -56,10 +49,10 @@ class Evaluator{
 
     //Sjekker rett foran bonde: ledig?
     if((retning == 1 && evFarge == 0) || (retning == -1 && evFarge == 1)){
-      if(y + retning >= 0 && y + retning <= 7 &&  feltErTomt(x, y + retning)){
+      if(y + retning >= 0 && y + retning <= 7 &&  feltErTomt(brettet, x, y + retning)){
         stilling.leggTilTrekk(evFarge, 1, trekkType, x, y, x, y + retning);
         bondeEvalStreng += " 1 foran ledig! ";
-        if(urort && feltErTomt(x, y + retning * 2)){
+        if(urort && feltErTomt(brettet, x, y + retning * 2)){
           stilling.leggTilTrekk(evFarge, 1, 0, x, y, x, y + retning * 2);
           bondeEvalStreng += " 2 foran ledig! ";
         }
@@ -81,7 +74,8 @@ class Evaluator{
     return bondeEvalStreng;
   }
 
-  private static String grunnSpringerEval(int x, int y, int evFarge, boolean evaluererNesteTrekkFarge){
+  private static String grunnSpringerEval(Stilling stilling, int[][][] brettet,
+                                          int x, int y, int evFarge){
     String evalStreng = "Eval: Springer " + x + ", " + y + ": ";
     int motstander = (1 - evFarge);
     if(x > 1){
@@ -177,24 +171,28 @@ class Evaluator{
 
     return evalStreng + "\n"; }
 
-  private static String grunnLoperEval(int x, int y, int evFarge, boolean evaluererNesteTrekkFarge){
+  private static String grunnLoperEval(Stilling stilling, int[][][] brettet,
+                                       int x, int y, int evFarge){
     String evalStreng = "Løper " + x + ", " + y + ": ";
-    evalStreng += diagonalEval(x, y, evFarge, 3);
+    evalStreng += diagonalEval(stilling, brettet, x, y, evFarge, 3);
     return evalStreng;
   }
-  private static String grunnTaarnEval(int x, int y, int evFarge, boolean evaluererNesteTrekkFarge){
+  private static String grunnTaarnEval(Stilling stilling, int[][][] brettet,
+                                       int x, int y, int evFarge){
     String evalStreng = "Tårn " + x + ", " + y + ": ";
-    evalStreng += rettLinjeEval(x, y, evFarge, 4);
+    evalStreng += rettLinjeEval(stilling, brettet, x, y, evFarge, 4);
     return evalStreng;
   }
 
-  private static String grunnDronningEval(int x, int y, int evFarge, boolean evaluererNesteTrekkFarge){
+  private static String grunnDronningEval(Stilling stilling, int[][][] brettet,
+                                          int x, int y, int evFarge){
     String evalStreng = "Dronning " + x + ", " + y + ": ";
-    evalStreng += rettLinjeEval(x, y, evFarge, 5);
-    evalStreng += diagonalEval(x, y, evFarge, 5);
+    evalStreng += rettLinjeEval(stilling, brettet, x, y, evFarge, 5);
+    evalStreng += diagonalEval(stilling, brettet, x, y, evFarge, 5);
     return evalStreng;
    }
-  private static String grunnKongeEval(int x, int y, int evFarge, boolean evaluererNesteTrekkFarge){
+  private static String grunnKongeEval(Stilling stilling, int[][][] brettet,
+                                       int x, int y, int evFarge){
     String evalStreng = "Konge " + x + ", " + y + ": ";
     int motstander = (1 - evFarge);
     for(int deltaX = -1; deltaX <= 1; deltaX++){
@@ -217,13 +215,13 @@ class Evaluator{
 
     //Lang rokade(med a tårn):
     if(stilling.hentLangRokadeMulig(evFarge)){
-      if(feltErTomt(3, y) && feltErTomt(2, y) && feltErTomt(1, y)){
+      if(feltErTomt(brettet, 3, y) && feltErTomt(brettet, 2, y) && feltErTomt(brettet, 1, y)){
         stilling.leggTilTrekk(evFarge, 6, 2, 4, y, 2, y);
       }
     }
     //Kort rokade(med h tårn):
     if(stilling.hentKortRokadeMulig(evFarge)){
-      if(feltErTomt(5, y) && feltErTomt(6, y)){
+      if(feltErTomt(brettet, 5, y) && feltErTomt(brettet, 6, y)){
         stilling.leggTilTrekk(evFarge, 6, 3, 4, y, 6, y);
       }
     }
@@ -232,7 +230,8 @@ class Evaluator{
     return evalStreng;
   }
 
-  private static String diagonalEval(int x, int y, int evFarge, int brikkeTypeNr){
+  private static String diagonalEval(Stilling stilling, int[][][] brettet, int x, int y,
+                                     int evFarge, int brikkeTypeNr){
     String evalStreng = "";
     int motstander = (1 - evFarge);
 
@@ -318,7 +317,8 @@ class Evaluator{
     }
     return evalStreng;
   }
-  private static String rettLinjeEval(int x, int y, int evFarge, int brikkeTypeNr){
+  private static String rettLinjeEval(Stilling stilling, int[][][] brettet, int x, int y,
+                                     int evFarge, int brikkeTypeNr){
     String evalStreng = "";
     int motstander = (1 - evFarge);
     // Sjekker mot høyre:
@@ -401,7 +401,7 @@ class Evaluator{
 
     return evalStreng; }
 
-  private static boolean feltErTomt(int x, int y){
+  private static boolean feltErTomt(int[][][] brettet, int x, int y){
     return brettet[0][x][y] == 0 && brettet[1][x][y] == 0;
   }
 

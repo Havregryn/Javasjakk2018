@@ -69,9 +69,15 @@ class StillingReell extends Stilling{
     }
 
     public void opprettStillingImagTre(){
+      int testTeller = 0;
+      evalStreng += "\nREELL: Oppretter imag St:\n";
       for(Trekk t : muligeTrekk){
-        t.settStillingEtterTrekk(new StillingImag(kopiAvBrettet(), t, status.kopi(), this, dybde));
+        StillingImag si = new StillingImag(kopiAvBrettet(), t, status.kopi(), this, dybde - 1);
+        t.settStillingEtterTrekk(si);
+        evalStreng += si.toString();
+        testTeller ++;
       }
+      evalStreng += ("\nAnt imagSt lagt til: " + testTeller + "\n");
     }
 
 }

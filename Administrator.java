@@ -13,9 +13,9 @@ class Administrator{
     partiet = new Parti(standardStartBrett(),
                         true,   // Hvit begynner?
                         uiMaster,
-                        true,   // Hvit auto?
-                        true,  // Svart auto?
-                        16); // Dybde, mulige framtidige trekk tre-struktur.
+                        false,   // Hvit auto?
+                        false,  // Svart auto?
+                        2); // Dybde, mulige framtidige trekk tre-struktur.
   }
 
   /**

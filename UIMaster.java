@@ -128,9 +128,11 @@ public class UIMaster extends Application{
     teater.setTitle("Java-sjakk");
     teater.show();
 
+    // STARTER OPP SJAKK LOGIKK:
     administrator = new Administrator(this);
     partiet = administrator.hentParti();
     stilling = administrator.hentStilling();
+    for(int i = 0; i < 100000000; i++){}
     hoyreTekstFelt.setText(stilling.toString());
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
     // OPPSETT FERDIG, STARTER AUTOSJAKK:
