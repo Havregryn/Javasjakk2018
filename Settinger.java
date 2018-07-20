@@ -23,15 +23,15 @@ public class Settinger{
   public static final int ANIMER_TREKK_TID = 10000;
 
   // BRIKKEVERDIER:
-  public static final int[] BRIKKEVERDIER = {0,
-                                             1, // Bonde
-                                             3, // Springer
-                                             3, // Løper
-                                             5, // Tårn
-                                             9, // Dronning
-                                             18}; // Konge
+  public static final double[] BRIKKEVERDIER = {0.0,
+                                             1.0, // Bonde
+                                             3.0, // Springer
+                                             3.0, // Løper
+                                             5.0, // Tårn
+                                             9.0, // Dronning
+                                             18.0}; // Konge
 
-  public static final int TREKK_VERDI = 1;
+  public static final double TREKK_VERDI = 1.0;
   public static final double TRUSSELBONUS_VEKTING = 0.5;
 
 

@@ -30,3 +30,10 @@ hentDypRating()
 
 
 Imag stilling skal KUN kommunisere med forelder, barn og Evaluator.
+
+*** PROBLEM: ***
+rekkefølge grunn/dype evaluering:
+
+REELL:  1) grunn evaluering: lager trekkene.
+        2) opprett framover-tre
+        3) gjøre grunn-rating basert på status.

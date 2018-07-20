@@ -1,44 +1,65 @@
 /**
-  Klasse med statisk metode som evaluerer en stilling og finner mulige trekk.
-  NB: Trekk som fører til selvsjakk blir  IKKE fjernet, dette gjøres ved "look ahead"
-  ett trekk fram.
+  Klasse med statiske metoder som evaluerer en stilling og finner mulige trekk.
 */
+
+import java.util.ArrayList;
 
 class Evaluator{
 
-  public static String grunnEvaluering(Stilling stilling){
-    String evalStreng = "";
+  public static void fjernUlovligeTrekk(Stilling stilling){
+    /*
+    Vurderer en stilling ut i fra mulige trekk ut av stilling.
+    FJERNER ALLE ULOVLIGE TREKK:
+      Trekk som fører til selvsjakk.
+    */
+    ArrayList<Trekk> muligeTrekk = stilling.hentTrekkListe();
+    for(int i = 0; i < muligeTrekk.size(); i++){
+      Trekk t = muligeTrekk.get(i);
+      Stilling stillingEtterTrekk = t.hentStillingEtterTrekk();
+      // Sjekker om farge er i sjakk etter eget trekk:
+      if(stillingEtterTrekk != null && stillingEtterTrekk.status.erISjakk[t.hentFarge()]){
+        stilling.fjernTrekk(t);
+        i--;
+         }
+    }
+
+
+
+
+  }
+
+  public static void finnMuligeTrekk(Stilling stilling){
     int[][][] brettet = stilling.hentBrett();
-    for(int evFarge = 0; evFarge < 2; evFarge++ ){
+    int nesteTrekkFarge = stilling.hentNesteTrekkFarge();
+    // Evaluerer alltid motstander først for å fange opp sjakk/rokade status.
+    // nesteTrfarge = 0 gir evFarge = 1 gir delta = -1, nTf 1 gir delta 1
+    for(int evFarge = 1 - nesteTrekkFarge ; evFarge < 2 && evFarge >= 0; evFarge += (nesteTrekkFarge * 2 - 1)){
       for(int y = 0; y < 8; y++){
         for(int x = 0; x < 8; x++){
           int felt = brettet[evFarge][x][y];
           switch(felt){
             case 0 : break;
 
-            case 1 :  evalStreng += grunnBondeEval(stilling, brettet, x, y, evFarge);
+            case 1 :  grunnBondeEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 2 :  evalStreng += grunnSpringerEval(stilling, brettet, x, y, evFarge);
+            case 2 :  grunnSpringerEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 3 :  evalStreng += grunnLoperEval(stilling, brettet, x, y, evFarge);
+            case 3 :  grunnLoperEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 4 :  evalStreng += grunnTaarnEval(stilling, brettet, x, y, evFarge);
+            case 4 :  grunnTaarnEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 5 :  evalStreng += grunnDronningEval(stilling, brettet, x, y, evFarge);
+            case 5 :  grunnDronningEval(stilling, brettet, x, y, evFarge);
                       break;
-            case 6 :  evalStreng += grunnKongeEval(stilling, brettet, x, y, evFarge);
+            case 6 :  grunnKongeEval(stilling, brettet, x, y, evFarge);
                       break;
           }
         }
       }
     }
-    return evalStreng;
   }
 
-  private static String grunnBondeEval(Stilling stilling, int[][][] brettet,
+  private static void grunnBondeEval(Stilling stilling, int[][][] brettet,
                                        int x, int y, int evFarge){
-
-    String bondeEvalStreng = "Bonde på: " + x + ", " + y + ": ";
     int retning = (evFarge * -2) + 1;
     int motstander = 1 - evFarge;
     int trekkType = 0;
@@ -51,10 +72,8 @@ class Evaluator{
     if((retning == 1 && evFarge == 0) || (retning == -1 && evFarge == 1)){
       if(y + retning >= 0 && y + retning <= 7 &&  feltErTomt(brettet, x, y + retning)){
         stilling.leggTilTrekk(evFarge, 1, trekkType, x, y, x, y + retning);
-        bondeEvalStreng += " 1 foran ledig! ";
         if(urort && feltErTomt(brettet, x, y + retning * 2)){
           stilling.leggTilTrekk(evFarge, 1, 0, x, y, x, y + retning * 2);
-          bondeEvalStreng += " 2 foran ledig! ";
         }
       }
 
@@ -70,17 +89,13 @@ class Evaluator{
         }
       }
     }
-    bondeEvalStreng += "\n";
-    return bondeEvalStreng;
   }
 
-  private static String grunnSpringerEval(Stilling stilling, int[][][] brettet,
+  private static void grunnSpringerEval(Stilling stilling, int[][][] brettet,
                                           int x, int y, int evFarge){
-    String evalStreng = "Eval: Springer " + x + ", " + y + ": ";
     int motstander = (1 - evFarge);
     if(x > 1){
       if(y > 0 && brettet[evFarge][x - 2][y - 1] == 0){
-        evalStreng += "x-2, y-1 OK! ";
         if(brettet[motstander][x - 2][y - 1] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x - 2, y - 1);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x - 2][y - 1]]);
@@ -97,7 +112,6 @@ class Evaluator{
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x - 2, y + 1);
         }
-        evalStreng += "x-2, y+1 OK! ";
       }
     }
     if(x < 6){
@@ -109,7 +123,6 @@ class Evaluator{
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x + 2, y - 1);
         }
-        evalStreng += "x+2, y-1 OK! ";
       }
       if(y < 7 && brettet[evFarge][x + 2][y + 1] == 0){
         if(brettet[motstander][x + 2][y + 1] != 0){
@@ -119,7 +132,6 @@ class Evaluator{
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x + 2, y + 1);
         }
-        evalStreng += "x+2, y+1 OK! ";
       }
     }
     if( y > 1){
@@ -131,7 +143,6 @@ class Evaluator{
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x - 1, y - 2);
         }
-        evalStreng += "x-1, y-2 OK! ";
       }
       if(x < 7 && brettet[evFarge][x + 1][y - 2] == 0){
         if(brettet[motstander][x + 1][y - 2] != 0){
@@ -141,7 +152,6 @@ class Evaluator{
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x + 1, y - 2);
         }
-        evalStreng += "x+1, y-2 OK! ";
       }
 
     }
@@ -154,7 +164,6 @@ class Evaluator{
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x - 1, y + 2);
         }
-        evalStreng += "x-1, y+2 OK! ";
       }
       if(x < 7 && brettet[evFarge][x + 1][y + 2] == 0){
         if(brettet[motstander][x + 1][y + 2] != 0){
@@ -164,36 +173,27 @@ class Evaluator{
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x + 1, y + 2);
         }
-        evalStreng += "x+1, y+2 OK! ";
       }
 
     }
-
-    return evalStreng + "\n"; }
-
-  private static String grunnLoperEval(Stilling stilling, int[][][] brettet,
-                                       int x, int y, int evFarge){
-    String evalStreng = "Løper " + x + ", " + y + ": ";
-    evalStreng += diagonalEval(stilling, brettet, x, y, evFarge, 3);
-    return evalStreng;
-  }
-  private static String grunnTaarnEval(Stilling stilling, int[][][] brettet,
-                                       int x, int y, int evFarge){
-    String evalStreng = "Tårn " + x + ", " + y + ": ";
-    evalStreng += rettLinjeEval(stilling, brettet, x, y, evFarge, 4);
-    return evalStreng;
   }
 
-  private static String grunnDronningEval(Stilling stilling, int[][][] brettet,
+  private static void grunnLoperEval(Stilling stilling, int[][][] brettet,
+                                       int x, int y, int evFarge){
+    diagonalEval(stilling, brettet, x, y, evFarge, 3);
+  }
+  private static void grunnTaarnEval(Stilling stilling, int[][][] brettet,
+                                       int x, int y, int evFarge){
+    rettLinjeEval(stilling, brettet, x, y, evFarge, 4);
+  }
+
+  private static void grunnDronningEval(Stilling stilling, int[][][] brettet,
                                           int x, int y, int evFarge){
-    String evalStreng = "Dronning " + x + ", " + y + ": ";
-    evalStreng += rettLinjeEval(stilling, brettet, x, y, evFarge, 5);
-    evalStreng += diagonalEval(stilling, brettet, x, y, evFarge, 5);
-    return evalStreng;
+    rettLinjeEval(stilling, brettet, x, y, evFarge, 5);
+    diagonalEval(stilling, brettet, x, y, evFarge, 5);
    }
-  private static String grunnKongeEval(Stilling stilling, int[][][] brettet,
+  private static void grunnKongeEval(Stilling stilling, int[][][] brettet,
                                        int x, int y, int evFarge){
-    String evalStreng = "Konge " + x + ", " + y + ": ";
     int motstander = (1 - evFarge);
     for(int deltaX = -1; deltaX <= 1; deltaX++){
       for(int deltaY = -1; deltaY <= 1; deltaY++){
@@ -225,14 +225,10 @@ class Evaluator{
         stilling.leggTilTrekk(evFarge, 6, 3, 4, y, 6, y);
       }
     }
-
-
-    return evalStreng;
   }
 
-  private static String diagonalEval(Stilling stilling, int[][][] brettet, int x, int y,
+  private static void diagonalEval(Stilling stilling, int[][][] brettet, int x, int y,
                                      int evFarge, int brikkeTypeNr){
-    String evalStreng = "";
     int motstander = (1 - evFarge);
 
     // Sjekker oppover mot høyre:
@@ -241,7 +237,6 @@ class Evaluator{
     int deltaY = 1;
     while(!ferdig && x + deltaX <= 7 && y + deltaY <= 7){
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
-        evalStreng += " x + " + deltaX + ", y + " + deltaY +"! ";
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
@@ -261,7 +256,6 @@ class Evaluator{
     deltaY = 1;
     while(!ferdig && x + deltaX >= 0 && y + deltaY <= 7){
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
-        evalStreng += " x + " + deltaX + ", y + " + deltaY +"! ";
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
@@ -281,7 +275,6 @@ class Evaluator{
     deltaY = -1;
     while(!ferdig && x + deltaX <= 7 && y + deltaY >= 0){
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
-        evalStreng += " x + " + deltaX + ", y + " + deltaY +"! ";
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
@@ -301,7 +294,6 @@ class Evaluator{
     deltaY = -1;
     while(!ferdig && x + deltaX >= 0 && y + deltaY >= 0){
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
-        evalStreng += " x + " + deltaX + ", y + " + deltaY +"! ";
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
@@ -315,11 +307,10 @@ class Evaluator{
       deltaX--;
       deltaY--;
     }
-    return evalStreng;
   }
-  private static String rettLinjeEval(Stilling stilling, int[][][] brettet, int x, int y,
+
+  private static void rettLinjeEval(Stilling stilling, int[][][] brettet, int x, int y,
                                      int evFarge, int brikkeTypeNr){
-    String evalStreng = "";
     int motstander = (1 - evFarge);
     // Sjekker mot høyre:
     boolean ferdig = false;
@@ -327,7 +318,6 @@ class Evaluator{
     int deltaY = 0;
     while(!ferdig && x + deltaX <= 7){
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
-        evalStreng += " x + " + deltaX + ", y + " + deltaY +"! ";
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
@@ -346,7 +336,6 @@ class Evaluator{
     deltaY = 0;
     while(!ferdig && x + deltaX >= 0){
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
-        evalStreng += " x + " + deltaX + ", y + " + deltaY +"! ";
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
@@ -365,7 +354,6 @@ class Evaluator{
     deltaY = 1;
     while(!ferdig && y + deltaY <= 7){
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
-        evalStreng += " x + " + deltaX + ", y + " + deltaY +"! ";
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
@@ -384,7 +372,6 @@ class Evaluator{
     deltaY = -1;
     while(!ferdig && y + deltaY >= 0){
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
-        evalStreng += " x + " + deltaX + ", y + " + deltaY +"! ";
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
           stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
@@ -397,9 +384,7 @@ class Evaluator{
       else{ ferdig = true; }
       deltaY--;
     }
-
-
-    return evalStreng; }
+  }
 
   private static boolean feltErTomt(int[][][] brettet, int x, int y){
     return brettet[0][x][y] == 0 && brettet[1][x][y] == 0;

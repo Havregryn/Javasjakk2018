@@ -25,6 +25,8 @@ class StillingImag extends Stilling{
     super.utforTrekk(trekkPre);
     super.byttTrekkFarge();
     leggTilBarn();
+    Evaluator.fjernUlovligeTrekk(this);
+    oppdaterGrunnRating();
   }
 
   private void leggTilBarn(){

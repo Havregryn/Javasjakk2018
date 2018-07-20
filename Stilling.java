@@ -10,8 +10,9 @@ abstract class Stilling{
   private int forrigeTrekkFarge;
   protected int[][][] brettet;
   protected ArrayList<Trekk> muligeTrekk;
-  private int grunnRating = 0;
-  private int grunnMuligeTrekk[] = {0, 0};
+  private double grunnRating = 0;
+  private double dypRating = 0;
+  private double grunnMuligeTrekk[] = {0, 0};
   private double[] grunnTrusselBonus = {0.0, 0.0};
   private boolean[] c_d_erTruet ={false, false};
   private boolean[] f_g_erTruet = {false, false};
@@ -23,6 +24,7 @@ abstract class Stilling{
   private static int fargeBytte = 0;
   private static int trekkLeggTil = 0;
   private static int trekkRiktigFarge = 0;
+  private static int trekkFjerning = 0;
 
 
 
@@ -43,8 +45,7 @@ abstract class Stilling{
     this.dybde = dybde;
     muligeTrekk = new ArrayList<Trekk>(40);
     initierBrikkeSum();
-    evalStreng += Evaluator.grunnEvaluering(this);
-    oppdaterGrunnRating();
+    Evaluator.finnMuligeTrekk(this);
   }
 
   //reell/imag: begge
@@ -75,7 +76,9 @@ abstract class Stilling{
 
   // TESTMETODE:
   public String hentEvalStreng(){ return evalStreng; }
-  public int hentGrunnrating(){return grunnRating; }
+  public double hentGrunnrating(){return grunnRating; }
+
+  public double hentDypRating(){ return dypRating; }
 
   // reell/imag: begge!
   public int[][][] hentBrett(){ return brettet; }
@@ -109,6 +112,12 @@ abstract class Stilling{
       if(tilX == 2 || tilX == 3){ c_d_erTruet[0] = true; logg+= ("Hvit cd truet av felt: " + fraX + ", " + fraY + "\n");}
       if(tilX == 5 || tilX == 6){ f_g_erTruet[0] = true; logg += ("Hvit fg truet av felt: " + fraX + ", " + fraY + "\n");}
     }
+  }
+
+  public void fjernTrekk(Trekk t){
+    muligeTrekk.remove(t);
+    grunnMuligeTrekk[t.hentFarge()] -= Settinger.TREKK_VERDI;
+    trekkFjerning++;
   }
 
 
@@ -169,7 +178,7 @@ abstract class Stilling{
     nesteTrekkFarge = 1 - nesteTrekkFarge;
     status.erISjakk[0] = false;
     status.erISjakk[1] = false;
-    evalStreng = Evaluator.grunnEvaluering(this);
+    Evaluator.finnMuligeTrekk(this);
     oppdaterGrunnRating();
   }
   // reell/imag: Evaluering
@@ -181,18 +190,36 @@ abstract class Stilling{
     return (status.kongeErUflyttet[farge] && status.hTaarnErUflyttet[farge] && !f_g_erTruet[farge]);
   }
   // reell/imag: Evaluering
-  public void leggTilTrusselBonus(int farge, int bonus){
+  public void leggTilTrusselBonus(int farge, double bonus){
     grunnTrusselBonus[farge] += bonus;
   }
 
   // begge!
-  private void oppdaterGrunnRating(){
+  protected void oppdaterGrunnRating(){
     grunnRating =   status.brikkeSum[0]
                   + grunnMuligeTrekk[0]
                   + (int)Math.round(grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING)
                   - status.brikkeSum[1]
                   - grunnMuligeTrekk[1]
                   - (int)Math.round(grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING);
+  }
+
+  public double oppdaterDypRating(){
+    // de nederste stillingene sender grunnrating oppover. Snitt av nederste stillinger
+    // blir rating ett lag over.
+    double sum = 0;
+    double beregnetRating = 0;
+    int antGyldigeTrekk = 0;
+    for(Trekk t : muligeTrekk){
+      if(t.hentStillingEtterTrekk() != null){
+        sum += t.hentStillingEtterTrekk().oppdaterDypRating();
+        antGyldigeTrekk++;
+      }
+    }
+    if(antGyldigeTrekk > 0){ beregnetRating = Math.round(sum/antGyldigeTrekk); }
+    else{ beregnetRating = grunnRating; }
+    dypRating = beregnetRating;
+    return beregnetRating;
   }
 
   protected int[][][] kopiAvBrettet(){
@@ -230,10 +257,11 @@ abstract class Stilling{
     s += "Ant instanser: " + instansTeller;
     s += " leggTilTrekk" + trekkLeggTil;
     s += "trekkRiktigFarge: " + trekkRiktigFarge;
+    s += "Ant fjernede trekk:" + trekkFjerning;
 
 
 
-    return evalStreng;
+    return s;
   }
 
 }

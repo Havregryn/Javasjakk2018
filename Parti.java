@@ -24,6 +24,7 @@ class Parti{
     automatisk[1] = svartErAuto;
     if(forsteTrekkHvit){ nesteTrekkFarge = 0; } else{ nesteTrekkFarge = 1; }
     this.uiMaster = uiMaster;
+    if(dybde < 1){ dybde = 1; }
     this.dybde = dybde;
     this.stilling = new StillingReell(brettet, new StillingStatus(), nesteTrekkFarge, dybde, this, uiMaster);
     stilling.settOppBrikkerUI();

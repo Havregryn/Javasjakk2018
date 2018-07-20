@@ -15,6 +15,9 @@ class StillingReell extends Stilling{
     this.parti = parti;
     this.uiMaster = uiMaster;
     opprettStillingImagTre();
+    Evaluator.fjernUlovligeTrekk(this);
+    oppdaterDypRating();
+    oppdaterGrunnRating();
   }
 
   // reell/imag: KUN reell!
@@ -79,5 +82,4 @@ class StillingReell extends Stilling{
       }
       evalStreng += ("\nAnt imagSt lagt til: " + testTeller + "\n");
     }
-
 }

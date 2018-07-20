@@ -3,7 +3,6 @@ class Trekk{
   private int fraX, tilX, fraY, tilY;
   // Koordinat som registrerer felt kongen passerer ved rokade:
   private int rokadePasseringsFeltX = -1;
-  private int dypRating;
   private Stilling stillingEtterTrekk;
   private int trekkType; //Viser type trekk:
                          // 0 = vanlig
@@ -52,13 +51,14 @@ class Trekk{
 
   @Override
   public String toString(){
-    String s = "Ittno";
-    //if(stillingEtterTrekk != null){ s = stillingEtterTrekk.toString(); }
+    double r = -999.0;
+    if(stillingEtterTrekk != null){
+      r =  stillingEtterTrekk.hentDypRating(); }
     return "Trekk brikkeType:  " + brikkeTypeNr +
            " fra: " + fraX + ", " + fraY +
            " til: " + tilX + ", " + tilY +
            " trekkType: " + trekkType +
-           " st etter trekk: " + s;
+           " Rating e. trekk: " + r;
   }
 
 }
