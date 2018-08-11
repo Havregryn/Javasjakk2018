@@ -6,22 +6,26 @@ import java.util.Random;
 
 abstract class Stilling{
   protected StillingStatus status = null;
-  private int nesteTrekkFarge;
-  private int forrigeTrekkFarge;
+  protected int nesteTrekkFarge;
+  protected int forrigeTrekkFarge;
   protected int[][][] brettet;
   protected ArrayList<Trekk> muligeTrekk;
-  private double grunnRating = 0;
-  private double dypRating = 0;
-  private double grunnMuligeTrekk[] = {0, 0};
-  private double[] grunnTrusselBonus = {0.0, 0.0};
-  private boolean[] c_d_erTruet ={false, false};
-  private boolean[] f_g_erTruet = {false, false};
-  protected int dybde;
+  protected double[] grunnRating = {0, 0};
+  protected double[] dypRating = {0, 0};
+  protected int grunnMuligeTrekk[] = {0, 0};
+  protected double[] grunnTrusselBonus = {0.0, 0.0};
+  protected double[] offensiv = {0.0, 0.0};
+  protected boolean[] c_d_erTruet ={false, false};
+  protected boolean[] f_g_erTruet = {false, false};
+  protected int antStillinger;
+  private RatingSett rs;
+
+  protected static int reellTrekkNr = 0, lengstFramTrekkNr = 0;
 
   // TESTING:
-  private static int instansTeller = 0;
-  private static int utforteTrekk = 0;
-  private static int fargeBytte = 0;
+  protected static int instansTeller = 0;
+  protected static int utforteTrekk = 0;
+  protected static int fargeBytte = 0;
   private static int trekkLeggTil = 0;
   private static int trekkRiktigFarge = 0;
   private static int trekkFjerning = 0;
@@ -36,52 +40,41 @@ abstract class Stilling{
   private String logg = "LOGG:\n";
 
 
-  public Stilling(int[][][] brettet, StillingStatus status, int nesteTrekkFarge, int dybde){
+  public Stilling(int[][][] brettet, StillingStatus status, int nesteTrekkFarge, int antStillinger){
     instansTeller++;
     this.brettet = brettet;
     this.status = status;
     this.nesteTrekkFarge = nesteTrekkFarge;
     forrigeTrekkFarge = 1 - nesteTrekkFarge;
-    this.dybde = dybde;
+    this.antStillinger = antStillinger;
     muligeTrekk = new ArrayList<Trekk>(40);
-    initierBrikkeSum();
-    Evaluator.finnMuligeTrekk(this);
-  }
-
-  //reell/imag: begge
-  private void initierBrikkeSum(){
-    // UFERDIG
-    for(int x = 0; x <= 7; x++){
-      for(int y = 0; y <= 7; y++){
-        if(brettet[nesteTrekkFarge][x][y] != 0){
-          status.brikkeSum[nesteTrekkFarge] += Settinger.BRIKKEVERDIER[brettet[nesteTrekkFarge][x][y]];
-        }
-        if(brettet[forrigeTrekkFarge][x][y] != 0){
-          status.brikkeSum[forrigeTrekkFarge] += Settinger.BRIKKEVERDIER[brettet[forrigeTrekkFarge][x][y]];
-        }
-      }
-    }
-  }
-  // reell/imag: må initieres via konstruktør i imag!! Tas imot fra forrige brett
-  public void initierRokadeVariabler(){
-    // Rokade er kun mulig dersom konge og tårn er satt opp på normal startplass:
-    status.kongeErUflyttet[0] = (brettet[0][4][0] == 6);
-    status.aTaarnErUflyttet[0] = (brettet[0][0][0] == 4);
-    status.hTaarnErUflyttet[0] = (brettet[0][7][0] == 4);
-    status.kongeErUflyttet[1] = (brettet[1][4][7] == 6);
-    status.aTaarnErUflyttet[1] = (brettet[1][0][7] == 4);
-    status.hTaarnErUflyttet[1] = (brettet[1][7][7] == 4);
-
   }
 
   // TESTMETODE:
   public String hentEvalStreng(){ return evalStreng; }
-  public double hentGrunnrating(){return grunnRating; }
+  public double[] hentGrunnrating(){return grunnRating; }
+  public double[] hentDypRating(){ return dypRating; }
+  public int[] hentGrunnMuligeTrekk(){ return grunnMuligeTrekk; }
+  public double[] hentGrunnTrusselBonus(){ return grunnTrusselBonus; }
+  public boolean[] hent_c_d_truet(){ return c_d_erTruet; }
+  public boolean[] hent_f_g_truet(){ return f_g_erTruet; }
 
-  public double hentDypRating(){ return dypRating; }
+  public Trekk hentHoyestRatedeTrekk(){
+    double hoyestGrunnRating = -99999999;
+    Trekk besteTrekk = null;
+    for( Trekk t : muligeTrekk){
+      Stilling s = t.hentStillingEtterTrekk();
+      if( s != null && s.hentGrunnrating()[nesteTrekkFarge] > hoyestGrunnRating){
+        besteTrekk = t;
+        hoyestGrunnRating = s.hentGrunnrating()[nesteTrekkFarge];
+      }
+    }
+    return besteTrekk;
+   }
 
   // reell/imag: begge!
   public int[][][] hentBrett(){ return brettet; }
+  public StillingStatus hentStatus(){ return status; }
 
   // reell/imag: begge!
   public int hentNesteTrekkFarge(){ return nesteTrekkFarge; }
@@ -92,13 +85,19 @@ abstract class Stilling{
   // reell/imag: begge!
   public void leggTilTrekk(int evFarge, int brikkeTypeNr, int trekkType, int fraX, int fraY, int tilX, int tilY){
     trekkLeggTil++;
-    grunnMuligeTrekk[evFarge] += Settinger.TREKK_VERDI;
+    grunnMuligeTrekk[evFarge] += 1;
     if(evFarge == nesteTrekkFarge){
       trekkRiktigFarge++;
       muligeTrekk.add(new Trekk(evFarge, brikkeTypeNr, trekkType, fraX, fraY, tilX, tilY));
     }
     // Dersom trekket tar motstanders konge: motstander er i sjakk!!
     if(brettet[1 - evFarge][tilX][tilY] == 6){ status.erISjakk[1 - evFarge] = true; }
+    int startY = evFarge * 7;
+    offensiv[evFarge] -= (Settinger.BRIKKEVERDIER[brikkeTypeNr] * Math.abs(fraY - startY));
+    offensiv[evFarge] += (Settinger.BRIKKEVERDIER[brikkeTypeNr] * Math.abs(tilY - startY));
+    if(brettet[1 - evFarge][tilX][tilY] != 0){
+      grunnTrusselBonus[evFarge] += Settinger.BRIKKEVERDIER[brettet[1 - evFarge][tilX][tilY]]; }
+
     // Oppdaterer flagg som varsler om trussel som gjør rokade ulovlig:
     // NB: Ulovlig rokade kan allikevel bli lagt inn dersom trusseltrekk ikke er registrert først.
     // Disse ulovlige rokadene fjernes ved framsyn ett trekk:
@@ -116,71 +115,20 @@ abstract class Stilling{
 
   public void fjernTrekk(Trekk t){
     muligeTrekk.remove(t);
-    grunnMuligeTrekk[t.hentFarge()] -= Settinger.TREKK_VERDI;
+    grunnMuligeTrekk[t.hentFarge()] -= 1;
     trekkFjerning++;
   }
 
-
-
-
-  // private, intern, brukes av begge!
-  protected void utforTrekk(Trekk trekket){
-    utforteTrekk++;
-    int trekkType = trekket.hentTrekkType();
-    int farge = trekket.hentFarge();
-    int fraX = trekket.hentFraX();
-    int fraY = trekket.hentFraY();
-    int tilX = trekket.hentTilX();
-    int tilY = trekket.hentTilY();
-
-    brettet[nesteTrekkFarge][tilX][tilY] = brettet[nesteTrekkFarge][fraX][fraY];
-    brettet[nesteTrekkFarge][fraX][fraY] = 0;
-
-    // Trekker fra brikkeSum når brikke slås ut:
-    if(trekkType == 1 || trekkType == 5 ){
-      status.brikkeSum[1 - farge] -= Settinger.BRIKKEVERDIER[brettet[1 - farge][tilX][tilY]];
-      brettet[1 - farge][tilX][tilY] = 0;
-    }
-    // Endrer brikkeSum og brikkeverdi ved bondeForvandling:
-    if(trekkType == 4 || trekkType == 5){
-      brettet[farge][tilX][tilY] = 5;
-      status.brikkeSum[farge] -= Settinger.BRIKKEVERDIER[1];
-      status.brikkeSum[farge] += Settinger.BRIKKEVERDIER[5];
-    }
-
-    //Sjekk om rokadebetingelser blir endret som følge av trekket:
-    if(fraY == farge * 7){
-      if(fraX == 0 && status.aTaarnErUflyttet[farge] == true){
-        status.aTaarnErUflyttet[farge] = false;
-      }
-      if(fraX == 7 && status.hTaarnErUflyttet[farge] == true){
-        status.hTaarnErUflyttet[farge] = false;
-      }
-      if(fraX == 4 && status.kongeErUflyttet[farge] == true){
-        status.kongeErUflyttet[farge] = false;
+  protected void avsluttInstans(){
+    for(Trekk t : muligeTrekk){
+      if(t.hentStillingEtterTrekk() != null){
+        t.hentStillingEtterTrekk().avsluttInstans();
+        t.settStillingEtterTrekk(null);
       }
     }
+    instansTeller--;
   }
 
-  // begge!
-  protected void byttTrekkFarge(){
-    fargeBytte++;
-    muligeTrekk = new ArrayList<Trekk>(40);
-    grunnMuligeTrekk[0] = 0;
-    grunnMuligeTrekk[1] = 0;
-    grunnTrusselBonus[0] = 0;
-    grunnTrusselBonus[1] = 0;
-    c_d_erTruet[0] = false;
-    c_d_erTruet[1] = false;
-    f_g_erTruet[0] = false;
-    f_g_erTruet[1] = false;
-    forrigeTrekkFarge = nesteTrekkFarge;
-    nesteTrekkFarge = 1 - nesteTrekkFarge;
-    status.erISjakk[0] = false;
-    status.erISjakk[1] = false;
-    Evaluator.finnMuligeTrekk(this);
-    oppdaterGrunnRating();
-  }
   // reell/imag: Evaluering
   public boolean hentLangRokadeMulig(int farge){
     return (status.kongeErUflyttet[farge] && status.aTaarnErUflyttet[farge] && !c_d_erTruet[farge]);
@@ -196,29 +144,67 @@ abstract class Stilling{
 
   // begge!
   protected void oppdaterGrunnRating(){
-    grunnRating =   status.brikkeSum[0]
-                  + grunnMuligeTrekk[0]
-                  + (int)Math.round(grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING)
-                  - status.brikkeSum[1]
-                  - grunnMuligeTrekk[1]
-                  - (int)Math.round(grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING);
+    if(status.brikkeSum[0] < Settinger.MITTSPILL_BRIKKESUM_GRENSE ||
+       status.brikkeSum[1] < Settinger.MITTSPILL_BRIKKESUM_GRENSE){
+      rs = Settinger.midtspillRating;
+    }
+    else if(status.brikkeSum[0] < Settinger.SLUTTSPILL_BRIKKESUM_GRENSE ||
+       status.brikkeSum[1] < Settinger.SLUTTSPILL_BRIKKESUM_GRENSE){
+      rs = Settinger.sluttspillRating;
+    }
+    else{
+      rs = Settinger.aapningRating;
+    }
+
+    for(int farge = 0; farge < 2; farge++){
+      grunnRating[farge] =   status.brikkeSum[farge] * rs.egneBrikkerVekting
+                           + grunnMuligeTrekk[farge] * rs.egneTrekkVerdi
+                           + grunnTrusselBonus[farge] * rs.trusselBonusVekting
+                           + offensiv[farge] * rs.egneOffensivVekting
+                           - status.brikkeSum[1 - farge] * rs.motstBrikkerVekting
+                           - grunnMuligeTrekk[1 - farge] * rs.motstTrekkVerdi
+                           - grunnTrusselBonus[1 - farge] * rs.truetVekting
+                           - offensiv[1 - farge] * rs.motstOffensivVekting;
+      if(status.kongeErUflyttet[farge]){
+        if(status.aTaarnErUflyttet[farge]){ grunnRating[farge] += rs.rokadeMuligBonus; }
+        if(status.hTaarnErUflyttet[farge]){ grunnRating[farge] += rs.rokadeMuligBonus; }
+      }
+
+      if(status.erISjakk[farge] && grunnMuligeTrekk[farge] == 0){
+        grunnRating[farge] -= 10000000;
+        grunnRating[1 - farge] += 10000000;
+      }
+    }
   }
 
-  public double oppdaterDypRating(){
+  public double[] oppdaterDypRating(){
     // de nederste stillingene sender grunnrating oppover. Snitt av nederste stillinger
     // blir rating ett lag over.
-    double sum = 0;
-    double beregnetRating = 0;
+    double[] avlestRating = {0, 0};
+    double[] sum = {0, 0};
+    double[] beregnetRating = {0, 0};
     int antGyldigeTrekk = 0;
     for(Trekk t : muligeTrekk){
       if(t.hentStillingEtterTrekk() != null){
-        sum += t.hentStillingEtterTrekk().oppdaterDypRating();
+        avlestRating = t.hentStillingEtterTrekk().oppdaterDypRating();
+        for(int farge = 0; farge < 2; farge++){
+          sum[farge] += avlestRating[farge];
+        }
         antGyldigeTrekk++;
       }
     }
-    if(antGyldigeTrekk > 0){ beregnetRating = Math.round(sum/antGyldigeTrekk); }
-    else{ beregnetRating = grunnRating; }
-    dypRating = beregnetRating;
+    if(antGyldigeTrekk > 0){
+      for(int farge = 0; farge < 2; farge++){
+        beregnetRating[farge] = sum[farge]/antGyldigeTrekk;
+      }
+    }
+    else{
+      oppdaterGrunnRating();
+      beregnetRating[0] = grunnRating[0];
+      beregnetRating[1] = grunnRating[1];
+    }
+    dypRating[0] = beregnetRating[0];
+    dypRating[1] = beregnetRating[1];
     return beregnetRating;
   }
 
@@ -253,11 +239,14 @@ abstract class Stilling{
     s += "Svart brikkesum: " + status.brikkeSum[1] + "\n";
     s += "Hvit trusselbonus: " + (grunnTrusselBonus[0] * Settinger.TRUSSELBONUS_VEKTING) + "\n";
     s += "Svart trusselbonus: " + (grunnTrusselBonus[1] * Settinger.TRUSSELBONUS_VEKTING) + "\n";
-    s += "Grunnrating: " + grunnRating + "\n";
-    s += "Ant instanser: " + instansTeller;
+    s += "Grunnrating hvit : " + grunnRating[0] + "\n";
+    s += "Grunnrating svart: " + grunnRating[1] + "\n";
+    s += "Antall instanser: " + instansTeller;
     s += " leggTilTrekk" + trekkLeggTil;
     s += "trekkRiktigFarge: " + trekkRiktigFarge;
-    s += "Ant fjernede trekk:" + trekkFjerning;
+    s += "Nestetrekk nr: " + reellTrekkNr;
+    s+= "lengstFramTrekkNr: " + lengstFramTrekkNr;
+    s += rs.toString();
 
 
 

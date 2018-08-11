@@ -13,9 +13,9 @@ class Administrator{
     partiet = new Parti(spesialStartBrett(),
                         true,   // Hvit begynner?
                         uiMaster,
-                        false,   // Hvit auto?
-                        false,  // Svart auto?
-                        1); // Dybde, mulige framtidige trekk tre-struktur.MINIMUM 1!!!
+                        true,   // Hvit auto?
+                        true,  // Svart auto?
+                        700); // Dybde, mulige framtidige trekk tre-struktur. MINIMUM 1
   }
 
   /**
@@ -61,15 +61,15 @@ class Administrator{
                                 {0, 0, 0, 0, 0, 0, 0, 0}, //4
                                 {0, 0, 0, 0, 0, 0, 0, 0}, //3
                                 {0, 0, 0, 0, 0, 0, 0, 0}, //2
-                                {0, 0, 0, 0, 6, 0, 0, 0}};//1
+                                {4, 0, 0, 0, 6, 0, 0, 4}};//1
     //                            A  B  C  D  E  F  G  H
     int brettOppsettSvart[][] = {{0, 0, 0, 0, 0, 0, 0, 0}, //8
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //7
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //6
-                                 {0, 0, 0, 0, 0, 0, 0, 0}, //5
+                                 {0, 0, 0, 0, 6, 0, 0, 0}, //5
                                  {0, 0, 0, 0, 0, 0, 0, 0}, //4
-                                 {0, 0, 0, 1, 1, 1, 0, 0}, //3
-                                 {0, 0, 1, 0, 0, 0, 1, 0}, //2
+                                 {0, 0, 0, 0, 0, 0, 0, 0}, //3
+                                 {0, 0, 0, 0, 0, 0, 0, 0}, //2
                                  {0, 0, 0, 0, 0, 0, 0, 0}};//1
 
     int[][][]brettet = new int[2][8][8];

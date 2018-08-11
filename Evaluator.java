@@ -6,27 +6,22 @@ import java.util.ArrayList;
 
 class Evaluator{
 
-  public static void fjernUlovligeTrekk(Stilling stilling){
-    /*
-    Vurderer en stilling ut i fra mulige trekk ut av stilling.
-    FJERNER ALLE ULOVLIGE TREKK:
-      Trekk som fører til selvsjakk.
-    */
-    ArrayList<Trekk> muligeTrekk = stilling.hentTrekkListe();
-    for(int i = 0; i < muligeTrekk.size(); i++){
-      Trekk t = muligeTrekk.get(i);
-      Stilling stillingEtterTrekk = t.hentStillingEtterTrekk();
-      // Sjekker om farge er i sjakk etter eget trekk:
-      if(stillingEtterTrekk != null && stillingEtterTrekk.status.erISjakk[t.hentFarge()]){
-        stilling.fjernTrekk(t);
-        i--;
-         }
-    }
+  private static boolean[] automatisk = {false, false};
+
+  public static void settAutomatisk(boolean[] auto){
+    automatisk = auto;
+  }
 
 
 
+  public static boolean trekkGodkjent(Stilling stillingPre, StillingImag stillingPost){
+    Trekk t = stillingPost.hentTrekkPre();
+    int farge = t.hentFarge();
+    boolean godkjent = (!stillingPost.hentStatus().erISjakk[t.hentFarge()]);
+    return godkjent;
 
   }
+
 
   public static void finnMuligeTrekk(Stilling stilling){
     int[][][] brettet = stilling.hentBrett();
@@ -81,11 +76,9 @@ class Evaluator{
       if(y + retning >= 0 && y + retning <= 7){
         if(x > 0 && brettet[motstander][x - 1][y + retning] != 0){
           stilling.leggTilTrekk(evFarge, 1, trekkType + 1, x, y, x - 1, y + retning);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x - 1][y + retning]]);
         }
         if(x < 7 && brettet[motstander][x + 1 ][y + retning] != 0){
           stilling.leggTilTrekk(evFarge, 1, trekkType + 1, x, y, x + 1, y + retning);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + 1][y + retning]]);
         }
       }
     }
@@ -98,7 +91,6 @@ class Evaluator{
       if(y > 0 && brettet[evFarge][x - 2][y - 1] == 0){
         if(brettet[motstander][x - 2][y - 1] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x - 2, y - 1);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x - 2][y - 1]]);
         }
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x - 2, y - 1);
@@ -107,7 +99,6 @@ class Evaluator{
       if(y < 7 && brettet[evFarge][x - 2][y + 1] == 0){
         if(brettet[motstander][x - 2][y + 1] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x - 2, y + 1);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x - 2][y + 1]]);
         }
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x - 2, y + 1);
@@ -118,7 +109,6 @@ class Evaluator{
       if(y > 0 && brettet[evFarge][x + 2][y - 1] == 0){
         if(brettet[motstander][x + 2][y - 1] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x + 2, y - 1);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + 2][y - 1]]);
         }
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x + 2, y - 1);
@@ -127,7 +117,6 @@ class Evaluator{
       if(y < 7 && brettet[evFarge][x + 2][y + 1] == 0){
         if(brettet[motstander][x + 2][y + 1] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x + 2, y + 1);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + 2][y + 1]]);
         }
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x + 2, y + 1);
@@ -138,7 +127,6 @@ class Evaluator{
       if(x > 0 && brettet[evFarge][x - 1][y - 2] == 0){
         if(brettet[motstander][x - 1][y - 2] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x - 1, y - 2);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x - 1][y - 2]]);
         }
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x - 1, y - 2);
@@ -147,7 +135,6 @@ class Evaluator{
       if(x < 7 && brettet[evFarge][x + 1][y - 2] == 0){
         if(brettet[motstander][x + 1][y - 2] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x + 1, y - 2);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + 1][y - 2]]);
         }
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x + 1, y - 2);
@@ -159,7 +146,6 @@ class Evaluator{
       if(x > 0 && brettet[evFarge][x - 1][y + 2] == 0){
         if(brettet[motstander][x - 1][y + 2] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x - 1, y + 2);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x - 1][y + 2]]);
         }
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x - 1, y + 2);
@@ -168,7 +154,6 @@ class Evaluator{
       if(x < 7 && brettet[evFarge][x + 1][y + 2] == 0){
         if(brettet[motstander][x + 1][y + 2] != 0){
           stilling.leggTilTrekk(evFarge, 2, 1, x, y, x + 1, y + 2);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + 1][y + 2]]);
         }
         else{
           stilling.leggTilTrekk(evFarge, 2, 0, x, y, x + 1, y + 2);
@@ -203,7 +188,6 @@ class Evaluator{
            brettet[evFarge][x + deltaX][y + deltaY] == 0){
           if(brettet[motstander][x + deltaX][y + deltaY] != 0){
             stilling.leggTilTrekk(evFarge, 6, 1, x, y, x + deltaX, y + deltaY);
-            stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           }
           else{
             stilling.leggTilTrekk(evFarge, 6, 0, x, y, x + deltaX, y + deltaY);
@@ -239,7 +223,6 @@ class Evaluator{
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           ferdig = true;
         }
         else{
@@ -258,7 +241,6 @@ class Evaluator{
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           ferdig = true;
         }
         else{
@@ -277,7 +259,6 @@ class Evaluator{
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           ferdig = true;
         }
         else{
@@ -296,7 +277,6 @@ class Evaluator{
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           ferdig = true;
         }
         else{
@@ -320,7 +300,6 @@ class Evaluator{
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           ferdig = true;
         }
         else{
@@ -338,7 +317,6 @@ class Evaluator{
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           ferdig = true;
         }
         else{
@@ -356,7 +334,6 @@ class Evaluator{
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           ferdig = true;
         }
         else{
@@ -374,7 +351,6 @@ class Evaluator{
       if(brettet[evFarge][x + deltaX][y + deltaY] == 0){
         if(brettet[motstander][x + deltaX][y + deltaY] != 0){
           stilling.leggTilTrekk(evFarge, brikkeTypeNr, 1, x, y, x + deltaX, y + deltaY);
-          stilling.leggTilTrusselBonus(evFarge, Settinger.BRIKKEVERDIER[brettet[motstander][x + deltaX][y + deltaY]]);
           ferdig = true;
         }
         else{

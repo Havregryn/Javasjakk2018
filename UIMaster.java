@@ -108,8 +108,8 @@ public class UIMaster extends Application{
     statusFelt.setTextAlignment(TextAlignment.CENTER);
 
     hoyreTekstFelt = new Text("Høyre");
-    hoyreTekstFelt.setWrappingWidth(Settinger.RUTE_BREDDE * 6);
-    hoyreTekstFelt.setFont(new Font(12));
+    hoyreTekstFelt.setWrappingWidth(Settinger.RUTE_BREDDE * 12);
+    hoyreTekstFelt.setFont(new Font(10));
 
 
 
@@ -132,7 +132,6 @@ public class UIMaster extends Application{
     administrator = new Administrator(this);
     partiet = administrator.hentParti();
     stilling = administrator.hentStilling();
-    for(int i = 0; i < 100000000; i++){}
     hoyreTekstFelt.setText(stilling.toString());
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
     // OPPSETT FERDIG, STARTER AUTOSJAKK:
@@ -167,18 +166,19 @@ public class UIMaster extends Application{
 
   // Metode som brukes av både manuelt og auto trekk, viser trekket:
   private void visTrekk(boolean auto, int trekkType, int fraFeltX, int fraFeltY, int tilFeltX, int tilFeltY){
+    hoyreTekstFelt.setText(stilling.toString());
     int farge = 1 - stilling.hentNesteTrekkFarge();
     boolean nesteAuto = partiet.hentAutomatisk(1- farge);
     StackPane fraSP = feltene[fraFeltX][fraFeltY];
     StackPane tilSP = feltene[tilFeltX][tilFeltY];
     ImageView iv = (ImageView)fraSP.getChildren().get(2);
-    hoyreTekstFelt.setText(stilling.toString());
     //hoyreTekstFelt.setText(stilling.hentEvalStreng());
     String s = "Fra: " + fraFeltX + ", " + fraFeltY + " til: " + tilFeltX + ", " + tilFeltY;
     statusFelt.setText(s + " trekkType: " + trekkType);
 
     if(auto){ animerFlyttAvBrikke(fraFeltX, fraFeltY, tilFeltX, tilFeltY, trekkType, nesteAuto); }
     else{
+
       // Kun ved manuelt trekk:
       if( trekkType >= 0 && trekkType <= 3){
         fraSP.getChildren().remove(iv);
@@ -192,6 +192,7 @@ public class UIMaster extends Application{
       }
       else if(trekkType == 0){
         // Trekk til tomt felt:
+        hoyreTekstFelt.setText(stilling.toString());
       }
       else if(trekkType == 1){
         // Trekk med utslag av motstanders brikker:
@@ -247,9 +248,6 @@ public class UIMaster extends Application{
         }
       }
    }
-
-
-
   }
 
   public void animerReturAvBrikke(ImageView iv){
@@ -279,6 +277,7 @@ public class UIMaster extends Application{
         tilSP.getChildren().add(iv);
         switch(nesteHandling){
           case 0:
+            hoyreTekstFelt.setText(stilling.toString());
             if(nesteAuto){ autoTrekk(); }
             break;
           case 1:
@@ -335,6 +334,7 @@ public class UIMaster extends Application{
       @Override
       public void handle(ActionEvent e){
         SP.getChildren().remove(utslattBrikkeIV);
+        hoyreTekstFelt.setText(stilling.toString());
         if(nesteAuto){ autoTrekk(); }
       }
     });
@@ -355,6 +355,7 @@ public class UIMaster extends Application{
     blinking.setOnFinished(new EventHandler<ActionEvent>(){
       @Override
       public void handle(ActionEvent e){
+        hoyreTekstFelt.setText(stilling.toString());
         bakgrunn.setFill(Color.RED);
         feltetSP.getChildren().remove(iv);
         if(hviteBrikkerIV.contains(iv)){
